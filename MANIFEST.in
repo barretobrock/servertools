@@ -1,0 +1,2 @@
+include versioneer.py
+include server-tools/_version.py
