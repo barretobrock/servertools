@@ -12,31 +12,42 @@
 # DEFAULT VARIABLES
 # ------------------------------------------
 NAME="Repo Update Script"
-VERSION="0.0.2"
+VERSION="0.0.3"
 SKIP_DEPS=0
 
 # Import common variables / functions
 source ./common.sh
-eval $(parse_yaml project.yaml)
+eval $(parse_yaml config.yaml)
 
-echo "${REPO_DIR}"
+NODEPS_FLAG=''
+if [[ "${SKIP_DEPS}" == "1" ]];
+then
+    echo "Not installing dependencies"
+    NODEPS_FLAG="--no-deps"
+fi
 
-#NODEPS_FLAG=''
-#if [[ "${SKIP_DEPS}" == "1" ]];
-#then
-#    echo "Not installing dependencies"
-#    NODEPS_FLAG="--no-deps"
-#fi
-#
-## GIT PULL
-## ------------------------------------------
-#announce_section "Pulling update from git repo"
-#(cd ${REPO_DIR} && git pull origin master)
-#
-## PY PACKAGE UPDATE
-## ------------------------------------------
-## Then update the python package locally
-#announce_section "Beginning update of ${REPO}"
-#python3 -m pip install ${GIT_URL} --upgrade ${NODEPS_FLAG}
-#
-#announce_section "Process completed"
+# GIT PULL
+# ------------------------------------------
+announce_section "Pulling update from git repo"
+(cd ${REPO_DIR} && git pull origin master)
+
+# PY PACKAGE UPDATE
+# ------------------------------------------
+# Then update the python package locally
+announce_section "Beginning update of ${REPO}"
+python3 -m pip install ${GIT_URL} --upgrade ${NODEPS_FLAG}
+
+# CRON UPDATE
+# --------------
+# Apply cronjob changes, if any.
+announce_section "Checking for crontab updates"
+CRON_DIR=${REPO_DIR}/crons
+CRON_FILE=${CRON_DIR}/${HOSTNAME}.sh
+SUDO_CRON_FILE=${CRON_DIR}/su-${HOSTNAME}.sh
+
+[[ -f ${CRON_FILE} ]] && echo "Applying cron file." && crontab ${CRON_FILE} || echo "No cron file."
+[[ -f ${SUDO_CRON_FILE} ]] && echo "Applying sudo cron file." && sudo crontab ${SUDO_CRON_FILE} || echo "No sudo cron file."
+
+announce_section "Cron updates completed"
+
+announce_section "Process completed"
