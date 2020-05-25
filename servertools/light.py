@@ -3,13 +3,14 @@
 import time
 from random import random, randint, uniform
 from phue import Bridge
+from .hosts import ServerHosts
 
 
 class HueBulb:
     """Commands for Philips Hue bulbs"""
     # Set path to bridge ip
-    h = Hosts()
-    b_ip = h.get_host('ot-huehub')['ip']
+    h = ServerHosts()
+    b_ip = h.get_ip('ot-huehub')
 
     # Some interesting color coordinates
     DEFAULT = [0.4596, 0.4105]

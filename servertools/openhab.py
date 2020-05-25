@@ -2,22 +2,24 @@
 # -*- coding: utf-8 -*-
 import requests
 import datetime
+from .hosts import ServerHosts
 
 
 class OpenHab:
     """
     Placeholder for OpenHab-type actions
     """
-    p = Paths()
+    h = ServerHosts()
+    serv_ip = h.get_ip('homeserv')
 
-    def __init__(self, oh_ip=p.openhab_ip, port=8080):
+    def __init__(self, oh_ip=serv_ip, port=8080):
         """
         Args:
             oh_ip: str, ip address of openhab
             port: int, port number to openhab default=8080
         """
-        self.addr_prefix = 'http://{}:{}'.format(oh_ip, port)
-        self.item_url = '{}/rest/items/'.format(self.addr_prefix)
+        self.addr_prefix = f'http://{oh_ip}:{port}'
+        self.item_url = f'{self.addr_prefix}/rest/items/'
 
     def update_value(self, item_name, data):
         """
@@ -32,8 +34,8 @@ class OpenHab:
             # Convert to a timestamp str
             data = data.strftime('%Y-%m-%dT%H:%M:%S')
 
-        self.whole_url = '{}{}'.format(self.item_url, item_name)
-        openhab_response = requests.post(self.whole_url, data=data,
+        url = f'{self.item_url}{item_name}'
+        openhab_response = requests.post(url, data=data,
                                          allow_redirects=True, headers={'Connection': 'close'})
 
         return openhab_response
@@ -45,9 +47,9 @@ class OpenHab:
             item_name: str, name of the item in OpenHab
             param_name: str, name of the item's parameter default: ALL
         """
-        self.whole_url = '{}{}'.format(self.item_url, item_name)
+        url = f'{self.item_url}{item_name}'
 
-        openhab_response = requests.get(self.whole_url, headers={'Connection': 'close'}).json()
+        openhab_response = requests.get(url, headers={'Connection': 'close'}).json()
         if param_name != 'ALL':
             return openhab_response[param_name]
         else:

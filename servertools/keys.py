@@ -1,6 +1,6 @@
 import os
 import json
-from typing import List
+from typing import List, Union
 
 
 class ServerKeys:
@@ -33,6 +33,17 @@ class ServerKeys:
         """Get all the key names"""
         return [x['name'] for x in self.keys]
 
-    def get_key(self, name: str) -> List[dict]:
+    def get_keys(self, name: str) -> List[dict]:
         """Gets specific key by name"""
         return [x for x in self.keys if x['name'] == name]
+
+    def get_key(self, name: str) -> Union[List[dict], str]:
+        """Gets specific key by name"""
+        for item in self.keys:
+            if item['name'] == name:
+                keys = item['keys']
+                if isinstance(keys, str):
+                    # Remove extra whitespace if returning only string
+                    return keys.strip()
+                else:
+                    return item['keys']

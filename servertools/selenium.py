@@ -68,10 +68,10 @@ class BrowserAction:
     REST_S = 2  # Standard seconds to rest between attempts
     STD_ATTEMPTS = 3 # Standard attempts to make before failing
 
-    def __init__(self, log_name, driver_path='/usr/bin/chromedriver',
+    def __init__(self, log_obj, driver_path='/usr/bin/chromedriver',
                  timeout=60, options=None, headless=True):
         self.driver = ChromeDriver(driver_path, timeout, options, headless)
-        self.log = Log(log_name, child_name='browser')
+        self.log = log_obj(log_obj.name, child_name='browser')
         self.elem_by_xpath = self.driver.find_element_by_xpath
         self.elems_by_xpath = self.driver.find_elements_by_xpath
 
@@ -288,4 +288,3 @@ class BrowserAction:
                 raise ValueError('Invalid parameters entered. Must be an x,y coordinate, or up/down command.')
 
         self.driver.execute_script(f'window.scrollTo({coords});')
-

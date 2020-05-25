@@ -2,16 +2,13 @@
 # -*- coding: utf-8 -*-
 import os
 from math import ceil, sqrt, floor
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from PIL import Image
+from PIL import Image
 
 
 class GIF:
     """GIF tools"""
     def __init__(self):
-        self.pil = __import__('PIL', fromlist=['Image'])
-        self.Image = self.pil.Image
+        self.Image = Image
 
     def spin(self, new_name: str, filepath: str, intensity: int = 1, clockwise: bool = False,
              frame_duration_ms: int = 100):
@@ -44,7 +41,7 @@ class GIF:
         # TODO
         pass
 
-    def make_transparent(self, img: 'Image', background: str = 'white') -> 'Image':
+    def make_transparent(self, img: Image, background: str = 'white') -> Image:
         """Makes an image (or frame) transparent by eliminating the white background"""
 
         img = img.convert("RGBA")
@@ -96,8 +93,7 @@ class GIF:
 class GIFSlice:
     """Slices a gif into squares of determined size"""
     def __init__(self):
-        self.pil = __import__('PIL', fromlist=['Image'])
-        self.Image = self.pil.Image
+        self.Image = Image
 
     def _validate_image(self, number_tiles):
         """Basic sanity checks prior to performing a split."""

@@ -10,7 +10,7 @@ class Amcrest:
         self.ip = ip
         self.name = name
         self.creds = creds
-        self.config_url = 'http://{ip}/cgi-bin/configManager.cgi?action=setConfig'
+        self.config_url = f'http://{ip}/cgi-bin/configManager.cgi?action=setConfig'
         self.camera = amcrest.AmcrestCamera(ip, port, creds['user'], creds['password']).camera
         self.is_ptz_enabled = self._check_for_ptz()
 
@@ -22,11 +22,11 @@ class Amcrest:
         """Sets motion detection"""
         motion_val = 'true' if set_motion else 'false'
 
-        motion_url = '{}&MotionDetect[0].Enable={{tf}}'.format(self.config_url)
-        motion_url = motion_url.format(ip=self.ip, tf=motion_val)
+        motion_url = f'{self.config_url}&MotionDetect[0].Enable={motion_val}'
         result = requests.get(motion_url, auth=HTTPDigestAuth(self.creds['user'], self.creds['password']))
         if result.status_code != 200:
-            raise Exception('Error in HTTP GET response. Status code: {}, Message: {}'.format(result.status_code, result.text))
+            raise Exception('Error in HTTP GET response. Status code: '
+                            f'{result.status_code}, Message: {result.text}')
 
     def set_ptz_flag(self, armed: bool):
         """Orients PTZ-enabled cameras either to armed position (1) or disarmed (2)"""
@@ -38,11 +38,11 @@ class Amcrest:
             resp = self.camera.go_to_preset(action='start', preset_point_number=preset_pt)
             if resp[:2] != 'OK':
                 # Something went wrong. Raise exception so it gets logged
-                raise Exception('Camera "{}" PTZ call saw unexpected response: "{}"'.format(self.name, resp))
+                raise Exception(f'Camera "{self.name}" PTZ call '
+                                f'saw unexpected response: "{resp}"')
 
     def get_current_ptz_coordinates(self) -> Optional[str]:
         """Gets the current xyz coordinates for a PTZ-enabled camera"""
         if self.is_ptz_enabled:
             ptz_list = self.camera.ptz_status().split('\r\n')[2:5]
             return ','.join([x.split('=')[1] for x in ptz_list])
-

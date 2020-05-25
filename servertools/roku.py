@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from roku import Roku
+from.hosts import ServerHosts
 
 
 class RokuTV(Roku):
@@ -8,8 +9,8 @@ class RokuTV(Roku):
     Customized functions for use with Roku TV
     """
     # Set path to roku TV ip
-    h = Hosts()
-    tv_ip = h.get_host('ot-roku')['ip']
+    h = ServerHosts()
+    tv_ip = h.get_ip('ot-roku')
 
     # Popular app ids
     NETFLIX = 12

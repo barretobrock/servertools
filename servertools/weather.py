@@ -8,6 +8,7 @@ from pyowm import OWM
 from pyowm.weatherapi25.forecast import Forecast
 from yr.libyr import Yr
 from urllib.request import urlopen
+from .keys import ServerKeys
 
 
 # Locations for OWM
@@ -26,7 +27,8 @@ NWS_ZONES_ATX = ['TXC453', 'TXZ192']
 
 class OpenWeather:
     def __init__(self, location: str, tz: str = 'US/Central'):
-        self.api_key = Keys().get_key('openweather_api')
+        sk = ServerKeys()
+        self.api_key = sk.get_key('openweather_api')
         self.owm = OWM(self.api_key)
         self.location = location
         self.tz = tz
@@ -129,7 +131,7 @@ class DarkSkyWeather:
         self.latlong = latlong
         self.tz = tz
         self.url_prefix = 'https://api.darksky.net/forecast'
-        k = Keys()
+        k = ServerKeys()
         self.DARK_SKY_API = k.get_key('darksky_api')
         self.DARK_SKY_URL = "{}/{}/{}?units=si&exclude=flags".format(self.url_prefix, self.DARK_SKY_API, self.latlong)
         self.data = self._get_data()
