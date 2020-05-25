@@ -48,7 +48,6 @@ then
     VNUM3=0
 fi
 
-
 #create new tag
 NEW_TAG="${VNUM1}.${VNUM2}.${VNUM3}"
 
@@ -67,4 +66,3 @@ if [[ -z "$NEEDS_TAG" ]]; then
 else
     echo "Already a tag on this commit"
 fi
-

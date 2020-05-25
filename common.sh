@@ -7,6 +7,13 @@ GREEN="\e[32m"
 RED="\e[31m"
 RESET="\e[0m"
 
+contains () {
+    # Checks if the variable ($2) is in the space-separated list provided ($1)
+    LIST=$1
+    VAR=$2
+    [[ "${LIST}" =~ (^|[[:space:]])"${VAR}"($|[[:space:]]) ]];
+}
+
 announce_section () {
     # Makes sections easier to see in output
     SECTION_BRK="\n==============================\n"

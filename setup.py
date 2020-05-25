@@ -1,4 +1,4 @@
-"""Setup kavalkilu.
+"""Setup the module.
 Resources to build this:
     https://packaging.python.org/en/latest/distributing.html
     https://github.com/pypa/sampleproject
