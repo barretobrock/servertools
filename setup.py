@@ -35,7 +35,7 @@ setup_args = {
     'url': URL,
     'author': 'Barret Obrock',
     'packages': find_packages(exclude=['api', 'crons', 'documentation', 'scripts', 'tests']),
-    'dependency_links': DEPS,
+    'dependency_links': DEPS.split(' '),
     'install_requires': reqs_list,
 }
 

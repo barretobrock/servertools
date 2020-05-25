@@ -6,6 +6,4 @@ REPO:
   DIR: ${HOME}/extras/${REPO_NAME}
   VENV: ${HOME}/venvs/stools/bin/python
   DESC: A package for routines performed by my home automation server
-  DEPS: [
-    'https://github.com/barretobrock/slacktools/tarball/master#egg=slacktools'
-  ]
+  DEPS: https://github.com/barretobrock/slacktools/tarball/master#egg=slacktools https://github.com/barretobrock/kavalkilu/tarball/master#egg=kavalkilu
