@@ -1,48 +1,42 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-import json
-from flask import Flask
+from flask import Flask, request
 from flask_jsonpify import jsonify
+from servertools import ServerHosts, ServerKeys
 
 app = Flask(__name__)
+shost = ServerHosts()
+skey = ServerKeys()
 
 
 @app.route('/hosts', methods=['GET'])
 def hosts():
     """Simple GET all hosts with static IPs"""
-    with open('/etc/hosts', 'r') as f:
-        hostlines = f.readlines()
-    hostlines = [line.strip().split(' ') for line in hostlines if line.startswith('192.168')]
-    hosts = [{'ip': ip, 'name': name} for ip, name in hostlines]
-    result = {'data': hosts}
-    return jsonify(result)
+    host_name = request.args.get('name', default=None, type=str)
+    ip = request.args.get('ip', default=None, type=str)
+    if host_name is not None:
+        result = [shost.get_ip(host_name)]
+    elif ip is not None:
+        result = [shost.get_host(ip)]
+    else:
+        # Get everything
+        result = shost.hosts
+    return jsonify({'data': result})
 
 
 @app.route('/keys', methods=['GET'])
 def keys():
     """Simple GET all keys with static IPs"""
-
-    key_dir = os.path.join(os.path.expanduser('~'), 'keys')
-
-    key_list = []
-    # Iterate through list of files in directory
-    for dirpath, dirnames, filenames in os.walk(key_dir):
-        for file in filenames:
-            filepath = os.path.join(dirpath, file)
-            if os.path.isfile(filepath):
-                with open(filepath, 'r') as f:
-                    txt = f.read()
-                    try:
-                        creds = json.loads(txt)
-                    except json.JSONDecodeError:
-                        # File was not in JSON format (possibly no brackets or double quotes)
-                        creds = txt.replace('\n', '')
-                # Separate file name from extension
-                fname = os.path.splitext(file)[0]
-                key_list.append({'name': fname, 'keys': creds})
-    result = {'data': key_list}
-    return jsonify(result)
+    key_name = request.args.get('name', default=None, type=str)
+    names_only = request.args.get('names_only', default=None, type=str)
+    if key_name is not None:
+        result = skey.get_key(key_name)
+    elif names_only is not None:
+        result = skey.get_all_key_names()
+    else:
+        # Return all keys
+        result = skey.keys
+    return jsonify({'data': result})
 
 
 if __name__ == '__main__':
