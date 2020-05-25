@@ -1,6 +1,6 @@
 # Configuration for the repo
 REPO:
-  NAME: server-tools
+  NAME: servertools
   URL: https://github.com/barretobrock/${REPO_NAME}
   GIT_URL: git+${REPO_URL}.git#egg=${REPO_NAME}
   DIR: ${HOME}/extras/${REPO_NAME}
