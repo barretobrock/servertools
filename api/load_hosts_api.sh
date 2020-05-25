@@ -6,7 +6,7 @@ API_FPATH=~/extras/servertools/api/${SERVICEFILE}
 LIB_FPATH=/lib/systemd/system/${SERVICEFILE}
 
 # Copy the service file to lib
-cp ${API_FPATH} ${LIB_FPATH}
+sudo cp ${API_FPATH} ${LIB_FPATH}
 # Set permissions on it - owner has r/w perms, everyone else has read-only
 sudo chmod 644 ${LIB_FPATH}
 # Load service & allow boot on restart
