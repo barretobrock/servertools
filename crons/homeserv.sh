@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # VARIABLES
-SCRIPTS=extras/server-tools/scripts
+SCRIPTS=extras/servertools/scripts
 PY3=/home/bobrock/venvs/stools/bin/python3
 
 # LOG ANALYSIS

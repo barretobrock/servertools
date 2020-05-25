@@ -1,16 +1,17 @@
-# server-tools
+# servertools
 A Python package of Ubuntu server specific routines primarily focused around home automation.
 
 
 ### Installation
 ```bash
-pip3 install git+https://github.com/barretobrock/server-tools.git#egg=server-tools
+pip3 install git+https://github.com/barretobrock/servertools.git#egg=servertools
 ```
 
 ### Upgrade
 ```bash
-pip3 install git+https://github.com/barretobrock/server-tools.git#egg=server-tools --upgrade
+pip3 install git+https://github.com/barretobrock/servertools.git#egg=servertools --upgrade
 ```
 
-### Flask setup
+### More Info
+See documentation folder for server environment setup
 
