@@ -1,4 +1,5 @@
-from .net import Hosts
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import time
 from random import random, randint, uniform
 from phue import Bridge

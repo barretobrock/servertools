@@ -1,7 +1,6 @@
 import os
 import time
 import requests
-import server_tools
 import pandas as pd
 from kavalkilu import Hosts, Log, LogArgParser, Paths
 from kavalkilu.local_tools import slack_comm, alert_channel

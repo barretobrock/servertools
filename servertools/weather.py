@@ -8,7 +8,6 @@ from pyowm import OWM
 from pyowm.weatherapi25.forecast import Forecast
 from yr.libyr import Yr
 from urllib.request import urlopen
-from .net import Keys
 
 
 # Locations for OWM

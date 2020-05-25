@@ -6,10 +6,9 @@ Handles exceptions while interacting with Selenium objects
 import time
 import datetime
 from random import randint
-from selenium.webdriver import Chrome, PhantomJS
+from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-from .log import Log
 
 
 class ChromeDriver(Chrome):
@@ -69,12 +68,9 @@ class BrowserAction:
     REST_S = 2  # Standard seconds to rest between attempts
     STD_ATTEMPTS = 3 # Standard attempts to make before failing
 
-    def __init__(self, log_name, browser='chrome', driver_path='/usr/bin/chromedriver',
+    def __init__(self, log_name, driver_path='/usr/bin/chromedriver',
                  timeout=60, options=None, headless=True):
-        if browser == 'chrome':
-            self.driver = ChromeDriver(driver_path, timeout, options, headless)
-        elif browser == 'phantomjs':
-            self.driver = PhantomDriver(driver_path, timeout, options=options)
+        self.driver = ChromeDriver(driver_path, timeout, options, headless)
         self.log = Log(log_name, child_name='browser')
         self.elem_by_xpath = self.driver.find_element_by_xpath
         self.elems_by_xpath = self.driver.find_elements_by_xpath

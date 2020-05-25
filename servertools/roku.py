@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from roku import Roku
-from .net import Hosts
 
 
 class RokuTV(Roku):

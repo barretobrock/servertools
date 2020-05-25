@@ -35,7 +35,8 @@ announce_section "Pulling update from git repo"
 # ------------------------------------------
 # Then update the python package locally
 announce_section "Beginning update of ${REPO_NAME}"
-${REPO_VENV} setup.py install
+#${REPO_VENV} setup.py install
+${REPO_VENV} -m pip install -e ${REPO_GIT_URL} --upgrade
 
 # CRON UPDATE
 # --------------
