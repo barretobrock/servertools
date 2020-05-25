@@ -9,15 +9,15 @@ class OpenHab:
     """
     Placeholder for OpenHab-type actions
     """
-    h = ServerHosts()
-    serv_ip = h.get_ip('homeserv')
-
-    def __init__(self, oh_ip=serv_ip, port=8080):
+    def __init__(self, oh_ip=None, port=8080):
         """
         Args:
             oh_ip: str, ip address of openhab
             port: int, port number to openhab default=8080
         """
+        h = ServerHosts()
+        if oh_ip is None:
+            oh_ip = h.get_ip('homeserv')
         self.addr_prefix = f'http://{oh_ip}:{port}'
         self.item_url = f'{self.addr_prefix}/rest/items/'
 

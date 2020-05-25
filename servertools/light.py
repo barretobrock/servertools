@@ -8,10 +8,6 @@ from .hosts import ServerHosts
 
 class HueBulb:
     """Commands for Philips Hue bulbs"""
-    # Set path to bridge ip
-    h = ServerHosts()
-    b_ip = h.get_ip('ot-huehub')
-
     # Some interesting color coordinates
     DEFAULT = [0.4596, 0.4105]
     DEEP_RED = [0.9, 0.5]
@@ -26,12 +22,16 @@ class HueBulb:
     FULL_BRIGHTNESS = 254
     FULL_SATURATION = 254
 
-    def __init__(self, light_id, bridge_ip=b_ip):
+    def __init__(self, light_id, bridge_ip=None):
         """
         Args:
             light_id: str name of light to control
             bridge_ip: str, ip address to the Philips Hue bridge
         """
+        # Set path to bridge ip
+        h = ServerHosts()
+        if bridge_ip is None:
+            bridge_ip = h.get_ip('ot-huehub')
         self.bridge = Bridge(bridge_ip)
         # Bridge button may need to be pressed the first time this is used
         self.bridge.connect()

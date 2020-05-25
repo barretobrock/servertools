@@ -8,9 +8,6 @@ class RokuTV(Roku):
     """
     Customized functions for use with Roku TV
     """
-    # Set path to roku TV ip
-    h = ServerHosts()
-    tv_ip = h.get_ip('ot-roku')
 
     # Popular app ids
     NETFLIX = 12
@@ -21,7 +18,11 @@ class RokuTV(Roku):
 
     # Popular Shows
 
-    def __init__(self, roku_ip=tv_ip):
+    def __init__(self, roku_ip=None):
+        # Set path to roku TV ip
+        h = ServerHosts()
+        if roku_ip is None:
+            roku_ip = h.get_ip('ot-roku')
         self.tv = Roku.__init__(self, roku_ip)
 
     def power(self):
