@@ -13,7 +13,7 @@ def hosts():
     """Simple GET all hosts with static IPs"""
     with open('/etc/hosts', 'r') as f:
         hostlines = f.readlines()
-    hostlines = [line.strip().split(' ') for line in hostlines if line.startswith('192.168.0')]
+    hostlines = [line.strip().split(' ') for line in hostlines if line.startswith('192.168')]
     hosts = [{'ip': ip, 'name': name} for ip, name in hostlines]
     result = {'data': hosts}
     return jsonify(result)

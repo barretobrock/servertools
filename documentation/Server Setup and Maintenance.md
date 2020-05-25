@@ -26,5 +26,15 @@
  - Install Java 8 (9 / 10 don't work with OH yet)
     `sudo apt install openjdk-8-jdk`
  - Follow instructions [here](https://www.openhab.org/docs/installation/linux.html)
-
-    
+### MQTT install
+#### Server-side
+ - Install broker
+    `sudo apt install mosquitto mosquitto-clients`
+ - Confirm that port 1883 is open & listening
+    `netstat -at`
+    (look for *:1883 & [::]:1883)
+ - Stopping/starting service
+    `sudo service mosquitto <start|stop>`
+#### Client-side
+ - Install client
+    `sudo apt install mosquitto-clients`
