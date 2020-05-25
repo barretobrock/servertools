@@ -34,13 +34,13 @@ announce_section "Pulling update from git repo"
 # PY PACKAGE UPDATE
 # ------------------------------------------
 # Then update the python package locally
-announce_section "Beginning update of ${REPO}"
-python3 -m pip install ${GIT_URL} --upgrade ${NODEPS_FLAG}
+announce_section "Beginning update of ${REPO_NAME}"
+${REPO_VENV} setup.py install
 
 # CRON UPDATE
 # --------------
 # Apply cronjob changes, if any.
-announce_section "Checking for crontab updates"
+announce_section "Checking for crontab updates for ${HOSTNAME}"
 CRON_DIR=${REPO_DIR}/crons
 CRON_FILE=${CRON_DIR}/${HOSTNAME}.sh
 SUDO_CRON_FILE=${CRON_DIR}/su-${HOSTNAME}.sh

@@ -1,9 +1,10 @@
 # Configuration for the repo
 REPO:
-  NAME: server_tools
+  NAME: server-tools
   URL: https://github.com/barretobrock/${REPO_NAME}
   GIT_URL: git+${REPO_URL}.git#egg=${REPO_NAME}
   DIR: ${HOME}/extras/${REPO_NAME}
+  VENV: ${HOME}/venvs/stools/bin/python
   DESC: A package for routines performed by my home automation server
   DEPS: [
     'https://github.com/barretobrock/slacktools/tarball/master#egg=slacktools'
