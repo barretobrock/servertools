@@ -2,7 +2,7 @@ Flask==1.1.2
 Pillow==7.1.2
 amcrest==1.7.1
 flask-jsonpify==1.5.0
-kavalkilu
+kavalkilu>=1.1.20
 markovify==0.8.0
 meteocalc==1.1.0
 numpy==1.18.4
@@ -15,4 +15,5 @@ pyyaml==5.3.1
 requests==2.23.0
 roku==4.1.0
 selenium>=3.141.0
+slacktools>=1.1.1
 sqlalchemy==1.3.17
