@@ -5,7 +5,7 @@ import time
 import requests
 from grafana_api.grafana_face import GrafanaFace
 from kavalkilu import Keys, Log, LogArgParser
-from kavalkilu.local_tools import slack_comm, notify_channel
+from servertools import , notify_channel
 
 
 log = Log('grafana_snapper', log_lvl=LogArgParser().loglvl)

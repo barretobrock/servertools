@@ -4,7 +4,7 @@
 import os
 import pandas as pd
 from kavalkilu import Log, LogArgParser, NetTools, Hosts
-from kavalkilu.local_tools import slack_comm, user_marelle, alert_channel, wifi_channel
+from servertools import SlackComm
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
