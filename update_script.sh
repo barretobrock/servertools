@@ -48,6 +48,10 @@ SUDO_CRON_FILE=${CRON_DIR}/su-${HOSTNAME}.sh
 [[ -f ${CRON_FILE} ]] && echo "Applying cron file." && crontab ${CRON_FILE} || echo "No cron file."
 [[ -f ${SUDO_CRON_FILE} ]] && echo "Applying sudo cron file." && sudo crontab ${SUDO_CRON_FILE} || echo "No sudo cron file."
 
-announce_section "Cron updates completed"
+announce_section "Updating custom dependencies"
+# Slacktools
+${REPO_VENV} -m pip install -e ${REPO_DEP1} --upgrade
+# Kavalkilu
+${REPO_VENV} -m pip install -e ${REPO_DEP2} --upgrade
 
 announce_section "Process completed"
