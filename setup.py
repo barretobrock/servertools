@@ -35,7 +35,10 @@ setup_args = {
     'url': URL,
     'author': 'Barret Obrock',
     'packages': find_packages(exclude=['api', 'crons', 'documentation', 'scripts', 'tests']),
-    'dependency_links': DEPS.split(' '),
+    'dependency_links': [
+        'https://github.com/barretobrock/slacktools/tarball/master#egg=slacktools',
+        'https://github.com/barretobrock/kavalkilu/tarball/master#egg=kavalkilu'
+    ],
     'install_requires': reqs_list,
 }
 

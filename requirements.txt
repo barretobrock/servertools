@@ -2,6 +2,7 @@ Flask==1.1.2
 Pillow==7.1.2
 amcrest==1.7.1
 flask-jsonpify==1.5.0
+grafana_api==1.0.2
 kavalkilu
 markovify==0.8.0
 meteocalc==1.1.0

@@ -8,15 +8,15 @@ from .keys import ServerKeys
 class SlackComm:
     def __init__(self):
         get_key = ServerKeys().get_key
-        creds = get_key('grafana-api')
+        self.grafana_creds = get_key('grafana-api')
         team = get_key('okr-name')
         xoxp = get_key('kodubot-usertoken')
         xoxb = get_key('kodubot-useraccess')
 
-        slack_comm = SlackTools(team, xoxp_token=xoxp, xoxb_token=xoxb)
-        alert_channel = 'alerts'
-        notify_channel = 'notifications'
-        wifi_channel = 'wifi-pinger-dinger'
-        log_channel = 'logs'
-        user_me = 'UM35HE6R5'
-        user_marelle = 'UM3E3G72S'
+        self.st = SlackTools(team, xoxp_token=xoxp, xoxb_token=xoxb)
+        self.alert_channel = 'alerts'
+        self.notify_channel = 'notifications'
+        self.wifi_channel = 'wifi-pinger-dinger'
+        self.log_channel = 'logs'
+        self.user_me = 'UM35HE6R5'
+        self.user_marelle = 'UM3E3G72S'
