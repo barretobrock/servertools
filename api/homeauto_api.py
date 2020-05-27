@@ -19,6 +19,9 @@ def hosts():
         for light in [1, 2]:
             h = HueBulb(f'{light_name} {light}')
             h.toggle()
+    else:
+        h = HueBulb(light_name)
+        h.toggle()
     return 200
 
 
