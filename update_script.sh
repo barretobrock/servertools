@@ -33,6 +33,13 @@ announce_section "Pulling update from git repo"
 
 # PY PACKAGE UPDATE
 # ------------------------------------------
+announce_section "Updating custom dependencies"
+# Update dependencies first in case they have an outdated requirement
+# Slacktools
+${REPO_VENV} -m pip install -e ${REPO_DEP1} --upgrade
+# Kavalkilu
+${REPO_VENV} -m pip install -e ${REPO_DEP2} --upgrade
+
 # Then update the python package locally
 announce_section "Beginning update of ${REPO_NAME}"
 ${REPO_VENV} -m pip install -e ${REPO_GIT_URL} --upgrade
@@ -47,11 +54,5 @@ SUDO_CRON_FILE=${CRON_DIR}/su-${HOSTNAME}.sh
 
 [[ -f ${CRON_FILE} ]] && echo "Applying cron file." && crontab ${CRON_FILE} || echo "No cron file."
 [[ -f ${SUDO_CRON_FILE} ]] && echo "Applying sudo cron file." && sudo crontab ${SUDO_CRON_FILE} || echo "No sudo cron file."
-
-announce_section "Updating custom dependencies"
-# Slacktools
-${REPO_VENV} -m pip install -e ${REPO_DEP1} --upgrade
-# Kavalkilu
-${REPO_VENV} -m pip install -e ${REPO_DEP2} --upgrade
 
 announce_section "Process completed"
