@@ -3,6 +3,7 @@
 import time
 from random import random, randint, uniform
 from phue import Bridge
+from typing import Union, Tuple, List
 from .hosts import ServerHosts
 
 
@@ -22,7 +23,7 @@ class HueBulb:
     FULL_BRIGHTNESS = 254
     FULL_SATURATION = 254
 
-    def __init__(self, light_id, bridge_ip=None):
+    def __init__(self, light_id: str, bridge_ip: str = None):
         """
         Args:
             light_id: str name of light to control
@@ -54,11 +55,11 @@ class HueBulb:
         else:
             self.turn_on()
 
-    def get_status(self):
+    def get_status(self) -> bool:
         """Determine if light is on/off"""
         return self.light_obj.on
 
-    def blink(self, times, wait=0.5, trans_time=0.1, bright_lvl=1):
+    def blink(self, times: int, wait: float = 0.5, trans_time: float = 0.1, bright_lvl: int = 1):
         """Blinks light x times, waiting y seconds between"""
         # Set what mode light is currently in
         cur_mode = self.get_status()
@@ -77,7 +78,7 @@ class HueBulb:
             # Turn light back on if it was previously on
             self.turn_on()
 
-    def brightness(self, level):
+    def brightness(self, level: Union[float, int]):
         """Set brightness to x%
         Args:
             level: float, the brightness level to set
@@ -88,7 +89,7 @@ class HueBulb:
 
         self.light_obj.brightness = level
 
-    def saturation(self, level):
+    def saturation(self, level: int):
         """
         Set saturation level (lower number gets closer to white)
         Args:
@@ -100,11 +101,11 @@ class HueBulb:
 
         self.light_obj.saturation = level
 
-    def hue(self, level):
+    def hue(self, level: int):
         """Set hue level of light"""
         self.light_obj.hue = level
 
-    def color(self, color_coord):
+    def color(self, color_coord: Union[Tuple[int, int], List[int, int]]):
         """Set the color of the light with x,y coordinates (0-1)"""
         self.light_obj.xy = color_coord
 
@@ -112,7 +113,7 @@ class HueBulb:
         """Sets random color"""
         self.color([random(), random()])
 
-    def alert(self, single=True, flash_secs=10):
+    def alert(self, single: bool = True, flash_secs: int = 10):
         """Puts light into alert mode (flashing)"""
         if single:
             self.light_obj.alert = 'select'
@@ -125,14 +126,14 @@ class HueBulb:
             # Turn off flashing
             self.light_obj.alert = 'none'
 
-    def transition_time(self, time_s=None):
+    def transition_time(self, time_s: Union[int, float] = None):
         """Sets the transition time of the bulb on/off"""
         if time_s:
             self.light_obj.transitiontime = time_s
         else:
             return self.light_obj.transitiontime
 
-    def candle_mode(self, duration_s):
+    def candle_mode(self, duration_s: int):
         """Turn HueBulb into a candle"""
 
         end_time = time.time() + duration_s

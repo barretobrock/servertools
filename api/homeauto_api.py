@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from flask import Flask, request
-from flask_jsonpify import jsonify
 from servertools import ServerHosts, ServerKeys, HueBulb
 
 app = Flask(__name__)
@@ -15,8 +14,12 @@ def hosts():
     light_name = request.args.get('name', default=None, type=str)
     if light_name is None:
         raise ValueError('No light name selected')
-    h = HueBulb(light_name)
-    h.toggle()
+    if light_name in ['garage', 'koridor']:
+        # Handle both lights
+        for light in [1, 2]:
+            h = HueBulb(f'{light_name} {light}')
+            h.toggle()
+    return 200
 
 
 if __name__ == '__main__':
