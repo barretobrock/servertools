@@ -38,7 +38,7 @@ setup_args = {
         'https://github.com/barretobrock/slacktools/tarball/master#egg=slacktools',
         'https://github.com/barretobrock/kavalkilu/tarball/master#egg=kavalkilu'
     ],
-    'install_requires': reqs_list,
+    'install_requires': reqs_list
 }
 
 setup(**setup_args)
