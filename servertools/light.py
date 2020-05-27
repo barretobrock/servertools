@@ -46,6 +46,14 @@ class HueBulb:
         """Turns light off"""
         self.light_obj.on = False
 
+    def toggle(self):
+        """Toggles light"""
+        if self.get_status():
+            # On
+            self.turn_off()
+        else:
+            self.turn_on()
+
     def get_status(self):
         """Determine if light is on/off"""
         return self.light_obj.on
