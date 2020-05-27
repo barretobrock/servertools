@@ -30,6 +30,7 @@ def light_toggle():
     else:
         h = HueBulb(light_name)
         h.toggle()
+        light_names.append(light_name)
     return f'{" and ".join(light_names)} set to {h.get_status()}'
 
 
