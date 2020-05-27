@@ -105,7 +105,7 @@ class HueBulb:
         """Set hue level of light"""
         self.light_obj.hue = level
 
-    def color(self, color_coord: Union[Tuple[int, int], List[int, int]]):
+    def color(self, color_coord: Union[Tuple[int], List[int]]):
         """Set the color of the light with x,y coordinates (0-1)"""
         self.light_obj.xy = color_coord
 
