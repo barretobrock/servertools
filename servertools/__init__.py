@@ -6,7 +6,7 @@ from .domoticz import Domoticz
 from .gif import GIF, GIFSlice, GIFTile
 from .hosts import ServerHosts
 from .keys import ServerKeys
-from .light import HueBulb
+from .light import HueBulb, HueSensor, HueBridge
 from .message import Email
 from .openhab import OpenHab
 from .roku import RokuTV

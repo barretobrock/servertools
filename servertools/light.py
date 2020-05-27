@@ -7,6 +7,25 @@ from typing import Union, Tuple, List
 from .hosts import ServerHosts
 
 
+class HueBridge(Bridge):
+    """Commands for Philips Hue Bridge"""
+    def __init__(self, bridge_ip: str = None):
+        """
+        Args:
+            bridge_ip: str, ip address to the Philips Hue bridge.
+                default is resolved from ip
+        """
+        # Set path to bridge ip
+
+        h = ServerHosts()
+        if bridge_ip is None:
+            bridge_ip = h.get_ip('ot-huehub')
+        super().__init__(bridge_ip)
+        # Bridge button may need to be pressed the first time this is used
+        self.connect()
+        self.api = self.get_api()
+
+
 class HueBulb:
     """Commands for Philips Hue bulbs"""
     # Some interesting color coordinates
@@ -29,14 +48,8 @@ class HueBulb:
             light_id: str name of light to control
             bridge_ip: str, ip address to the Philips Hue bridge
         """
-        # Set path to bridge ip
-        h = ServerHosts()
-        if bridge_ip is None:
-            bridge_ip = h.get_ip('ot-huehub')
-        self.bridge = Bridge(bridge_ip)
+        self.bridge = HueBridge(bridge_ip)
         # Bridge button may need to be pressed the first time this is used
-        self.bridge.connect()
-        self.api = self.bridge.get_api()
         self.light_obj = self.bridge.get_light_objects('name')[light_id]
 
     def turn_on(self):
@@ -144,3 +157,35 @@ class HueBulb:
             self.brightness(randint(50, 255))
             self.transition_time(randint(1, 3))
             time.sleep(uniform(0.5, 3) / 10)
+
+
+class HueSensor:
+    """Commands for Philips Hue Sensors"""
+    def __init__(self, name: str, bridge_ip: str = None):
+        self.bridge = HueBridge(bridge_ip)
+        self._get_sensor_id(sensor_name=name)
+        self.name = self.sensor_dict['name']
+        self.on = self.sensor_dict['config']['on']
+        self.battery_level = self.sensor_dict['config']['battery']
+
+    def _get_sensor_id(self, sensor_name: str):
+        """Returns the sensor dict the matches the name"""
+        sensor_id = self.bridge.get_sensor_id_by_name(sensor_name)
+        self.sensor_id = int(sensor_id)
+        self.sensor_dict = self.bridge.get_sensor(self.sensor_id)
+
+    def _set_status(self, status: bool):
+        """Sets the status of the sensor"""
+        self.bridge.set_sensor_config(self.sensor_id, 'on', status)
+        self.on = status
+
+    def turn_on(self):
+        """Turn the sensor on"""
+        self._set_status(True)
+
+    def turn_off(self):
+        """Turn the sensor on"""
+        self._set_status(True)
+
+    def toggle(self):
+        self._set_status(not self.on)
