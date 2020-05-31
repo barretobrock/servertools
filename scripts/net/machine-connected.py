@@ -9,7 +9,27 @@ logg = Log('machine-conn')
 h = Hosts()
 ow = OpenWRT()
 
+logg.debug('Beginning conn status check for known devices.')
+ips = h.get_hosts(r'an-barret')
+for ip_dict in ips:
+    ip = ip_dict['ip']
+    ip_changed_state = ow.check_ip_changed_connection(ip)
+    if ip_changed_state in ['CONNECTED', 'DISCONNECTED']:
+        sc = SlackComm()
+        if ip_changed_state == 'CONNECTED':
+            # IP recently connected
+            logg.debug(f'Device at {ip} recently re-connected. Notifying channel.')
+            sc.st.send_message(sc.wifi_channel,
+                               f'<@{sc.user_marelle}> Mehe ühik on taas koduvõrgus!:peanuts:')
+        elif ip_changed_state == 'DISCONNECTED':
+            # IP recently disconnected
+            logg.debug(f'Device at {ip} recently disconnected. Notifying channel.')
+            sc.st.send_message(sc.wifi_channel,
+                               f'Mehe ühik on koduvõrgust läinud :sadcowblob:')
+
+logg.debug('Beginning scan of unknown ips.')
 unknown_ips = ow.show_unknown_ips()
+logg.debug(f'Found {len(unknown_ips)} unknown ips.')
 if len(unknown_ips) > 0:
     bkb = BlockKitBuilder()
     sc = SlackComm()
@@ -19,6 +39,7 @@ if len(unknown_ips) > 0:
         if ow.check_ip_changed_connection(ip) == 'CONNECTED':
             # Unknown ip recently connected. Notify
             # Collect info on the ip; don't scan ports
+            logg.debug(f'IP {ip} recently connected. Notifying channel.')
             ip_info_dict = ow.collect_ip_info(ip, None)
             msg_chunk.append('`{ip}`:\t\t{hostname}'.format(**ip_info_dict))
     if len(msg_chunk) > 0:
@@ -30,4 +51,6 @@ if len(unknown_ips) > 0:
         sc.st.send_message(sc.wifi_channel, message='', blocks=blocks)
 
 # This basically just replaces the file of saved ips that are currently connected to the router
+logg.debug('Saving current connection states.')
 ow.save_connections_file()
+logg.close()

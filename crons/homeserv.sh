@@ -12,7 +12,6 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 ## MYSQL
 #30 6 * * *          $PY3    $HOME/$SCRIPTS/grafana/grafana.py
 # SYS DATA COLLECTION
-*/5 * * * *         $PY3    $HOME/$SCRIPTS/net/ba-connection-tracker.py -lvl debug
 */2 * * * *         $PY3    $HOME/$SCRIPTS/net/machine-connected.py -lvl debug
 0 */3 * * *         $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py -lvl debug
 ## ENV DATA COLECTION
