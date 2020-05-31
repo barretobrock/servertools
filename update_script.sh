@@ -36,13 +36,13 @@ announce_section "Pulling update from git repo"
 announce_section "Updating custom dependencies"
 # Update dependencies first in case they have an outdated requirement
 # Slacktools
-${REPO_VENV} -m pip install -e ${REPO_DEP1} --upgrade
+${REPO_VENV} -m pip install -e ${REPO_DEP1} --upgrade ${NODEPS_FLAG}
 # Kavalkilu
-${REPO_VENV} -m pip install -e ${REPO_DEP2} --upgrade
+${REPO_VENV} -m pip install -e ${REPO_DEP2} --upgrade ${NODEPS_FLAG}
 
 # Then update the python package locally
 announce_section "Beginning update of ${REPO_NAME}"
-${REPO_VENV} -m pip install -e ${REPO_GIT_URL} --upgrade
+${REPO_VENV} -m pip install -e ${REPO_GIT_URL} --upgrade ${NODEPS_FLAG}
 
 # CRON UPDATE
 # --------------
