@@ -8,14 +8,13 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 #0 */4 * * *         $PY3    $HOME/$SCRIPTS/log_reader.py
 #32 3 20 * *         $PY3    $HOME/$SCRIPTS/log_remover.py -lvl debug
 ## PIHOLE
-#33 8 * * *          $PY3    $HOME/$SCRIPTS/net/unknown_ip_monitor.py
 
 ## MYSQL
 #30 6 * * *          $PY3    $HOME/$SCRIPTS/grafana/grafana.py
-## SYS DATA COLLECTION
-#*/10 * * * *        $PY3    $HOME/$SCRIPTS/net/machine_uptime.py
-#*/5 * * * *         $PY3    $HOME/$SCRIPTS/net/machine_connected.py
-#0 */3 * * *         $PY3    $HOME/$SCRIPTS/speedtest/speedtest_logger.py
+# SYS DATA COLLECTION
+*/5 * * * *         $PY3    $HOME/$SCRIPTS/net/ba-connection-tracker.py
+*/2 * * * *         $PY3    $HOME/$SCRIPTS/net/machine-connected.py
+0 */3 * * *         $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py
 ## ENV DATA COLECTION
 #*/10 * * * *        $PY3    $HOME/$SCRIPTS/temps/ecobee_temps.py
 #20 19 * * *         $PY3    $HOME/$SCRIPTS/temps/frost_warning.py

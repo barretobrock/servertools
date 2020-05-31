@@ -2,6 +2,8 @@ from servertools import RokuTV
 
 
 rktv = RokuTV()
-rktv.tv_channels
 rktv.power()
-rktv.tv.
+
+app = rktv.get_app_by_name('prime video')
+app.launch()
+
