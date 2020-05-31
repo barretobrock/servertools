@@ -2,15 +2,14 @@
 # -*- coding: utf-8 -*-
 import os
 import json
-from typing import Optional, List, Union
+from typing import Optional
 import pygsheets
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
-from.hosts import ServerHosts
-from .keys import ServerKeys
+from kavalkilu import Hosts, Keys
 
 
 class MySQLLocal:
@@ -24,19 +23,19 @@ class MySQLLocal:
             connection_dict: dict, contains connection credentials
                 expects (un, pw, database, [port], [host])
         """
-        sh = ServerHosts()
-        sk = ServerKeys()
+        h = Hosts()
+        k = Keys()
 
         if connection_dict is None:
             # Ignore connection dict, connecting to local/usual db
             # Read in username and password dict from path
-            connection_dict = sk.get_key('mysqldb')
+            connection_dict = k.get_key('mysqldb')
             connection_dict['database'] = database_name
         # Determine if host and port is in dictionary, if not, use defaults
         if 'port' not in connection_dict.keys():
             connection_dict['port'] = 3306
         if 'host' not in connection_dict.keys():
-            connection_dict['host'] = sh.get_ip('homeserv')
+            connection_dict['host'] = h.get_host(name='homeserv')['ip']
 
         connection_url = 'mysql+mysqldb://{un}:{pw}@{host}:{port}/{database}'
         connection_url = connection_url.format(**connection_dict)
@@ -108,10 +107,10 @@ class MySQLLocal:
 class GSheetReader:
     """A class to help with reading in Google Sheets"""
     def __init__(self, sheet_key: str):
-        sk = ServerKeys()
+        k = Keys()
         pyg = pygsheets
         try:
-            gsheets_creds = sk.get_key('gsheet-reader')
+            gsheets_creds = k.get_key('gsheet-reader')
         except:
             with open(os.path.join(os.path.expanduser('~'), *['keys', 'GSHEET_READER'])) as f:
                 gsheets_creds = json.loads(f.read())
@@ -133,5 +132,3 @@ class GSheetReader:
         sheet = wb.worksheet_by_title(sheet_name)
         sheet.clear()
         sheet.set_dataframe(df, (1, 1))
-
-
