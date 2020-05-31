@@ -16,7 +16,7 @@ class ServerKeys:
         for dirpath, dirnames, filenames in os.walk(self.key_dir):
             for file in filenames:
                 filepath = os.path.join(dirpath, file)
-                if os.path.isfile(filepath):
+                if os.path.isfile(filepath) and 'hidden' not in file:
                     with open(filepath, 'r') as f:
                         txt = f.read()
                         try:

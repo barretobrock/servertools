@@ -2,6 +2,7 @@ amcrest==1.7.1
 Flask>=1.1.2
 kavalkilu>=1.1.22
 meteocalc==1.1.0
+openwrt-luci-rpc==1.1.3
 pandas==1.0.3
 Pillow==7.1.2
 phue==1.1

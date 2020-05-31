@@ -8,7 +8,7 @@ from .keys import ServerKeys
 class SlackComm:
     def __init__(self):
         get_key = ServerKeys().get_key
-        self.grafana_creds = get_key('grafana-api')
+        # self.grafana_creds = get_key('grafana-api')
         team = get_key('okr-name')
         xoxp = get_key('kodubot-usertoken')
         xoxb = get_key('kodubot-useraccess')
