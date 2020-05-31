@@ -9,6 +9,7 @@ from .keys import ServerKeys
 from .light import HueBulb, HueSensor, HueBridge
 from .message import Email
 from .openhab import OpenHab
+from .openwrt import OpenWRT
 from .roku import RokuTV
 from .selenium import ChromeDriver, BrowserAction
 from .slack_communicator import SlackComm
