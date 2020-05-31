@@ -15,3 +15,8 @@ from .selenium import ChromeDriver, BrowserAction
 from .slack_communicator import SlackComm
 from .text import MarkovText
 from .weather import DarkSkyWeather
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+__update_date__ = get_versions()['date']
+del get_versions
