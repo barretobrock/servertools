@@ -13,6 +13,7 @@ class OpenWRT(OpenWrtRpc):
         self.data_path = os.path.join(os.path.expanduser('~'), *['data', 'connected-ips.json'])
         self.current_connections = self.get_active_connections()
         self.previous_connections = self.get_previously_active_connections()
+        self._add_connection_time_to_new_clients()
 
     @staticmethod
     def _get_creds() -> Tuple[str, str]:
@@ -33,10 +34,14 @@ class OpenWRT(OpenWrtRpc):
                 dev_dict[ip] = {
                     'hostname': device.hostname,
                 }
-                if self.check_ip_changed_connection(ip) == 'CONNECTED':
-                    # Connected between now and the last time this report was run
-                    dev_dict[ip]['since'] = dt.now().strftime('%F %T')
         return dev_dict
+
+    def _add_connection_time_to_new_clients(self):
+        """Adds a 'since' key to ips that have recently connected"""
+        for ip in self.current_connections.keys():
+            if self.check_ip_changed_connection(ip) == 'CONNECTED':
+                # Connected between now and the last time this report was run
+                self.current_connections[ip]['since'] = dt.now().strftime('%F %T')
 
     def get_previously_active_connections(self):
         """Collects from a saved file of previously connected devices"""
@@ -47,10 +52,10 @@ class OpenWRT(OpenWrtRpc):
             return prev_dev_dict
         return {}
 
-    def save_connections_file(self, device_dict: dict):
+    def save_connections_file(self):
         """Saves the dictionary of current connections to the connections file"""
         with open(self.data_path, 'w') as f:
-            json.dump(device_dict, f)
+            json.dump(self.current_connections, f)
 
     def check_ip_changed_connection(self, ip: str) -> str:
         """Checks if a given ip changed connection status recently
@@ -77,8 +82,10 @@ class OpenWRT(OpenWrtRpc):
                 unknown_ips.append(ip)
         return unknown_ips
 
-    def collect_ip_info(self, ip: str, port_range: Optional[Tuple[int, int]] = (1, 1000)):
+    def collect_ip_info(self, ip: str, port_range: Optional[Tuple[int, int]] = (1, 1000)) -> Optional[dict]:
         """Returns info on device with given ip by scanning it"""
+        if ip not in self.current_connections.keys():
+            return None
         hostname = self.current_connections[ip]['hostname']
 
         result_dict = {'ip': ip, 'hostname': hostname}
