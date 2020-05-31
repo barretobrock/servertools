@@ -8,6 +8,18 @@ shost = ServerHosts()
 skey = ServerKeys()
 
 
+def return_html(msg: str):
+    return f"""
+        <style>
+            * {{
+                background-color: black;
+                color: white;
+            }}
+        </style>
+        <div>{msg}</div>
+    """
+
+
 @app.route('/')
 def main_page():
     return 'Home Automation API'
@@ -31,7 +43,7 @@ def light_toggle():
         h = HueBulb(light_name)
         h.toggle()
         light_names.append(light_name)
-    return f'{" and ".join(light_names)} set to {h.get_status()}'
+    return return_html(f'{" and ".join(light_names)} set to {h.get_status()}')
 
 
 @app.route('/toggle-sensor', methods=['GET'])
@@ -42,7 +54,7 @@ def sensor_toggle():
         raise ValueError('No sensor name selected')
     s = HueSensor(sensor_name)
     s.toggle()
-    return f'{s.name} set to {s.on}.'
+    return return_html(msg=f'{s.name} set to {s.on}.')
 
 
 @app.route('/tv', methods=['GET'])
@@ -54,12 +66,13 @@ def tv_action():
     tv = RokuTV()
     if action == 'toggle':
         tv.power()
-        return 'TV power toggled'
+        msg = 'TV power toggled'
     elif action == 'mute':
         tv.mute()
-        return 'TV mute toggled'
+        msg = 'TV mute toggled'
     else:
-        return f'Unknown action: {action}'
+        msg = f'Unknown action: {action}'
+    return return_html(msg=msg)
 
 
 @app.errorhandler(404)

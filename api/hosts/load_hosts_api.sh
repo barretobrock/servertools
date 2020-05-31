@@ -2,7 +2,7 @@
 # LOADS HOSTS API SERVICE INTO SYSTEMD
 
 SERVICEFILE=hosts_api.service
-API_FPATH=~/extras/servertools/api/${SERVICEFILE}
+API_FPATH=~/extras/servertools/api/hosts/${SERVICEFILE}
 LIB_FPATH=/lib/systemd/system/${SERVICEFILE}
 
 # Copy the service file to lib

@@ -7,7 +7,7 @@ After=multi-user.target
 User=bobrock
 Group=bobrock
 Type=idle
-ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/api/hosts_api.py
+ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/api/hosts/hosts_api.py
 Restart=on-failure
 
 [Install]
