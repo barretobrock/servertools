@@ -5,7 +5,7 @@ from servertools import OpenWRT, SlackComm
 from kavalkilu import Hosts, Log
 
 
-logg = Log('ba-connected')
+logg = Log('machine-conn')
 h = Hosts()
 ow = OpenWRT()
 
@@ -20,10 +20,10 @@ if len(unknown_ips) > 0:
             # Unknown ip recently connected. Notify
             # Collect info on the ip; don't scan ports
             ip_info_dict = ow.collect_ip_info(ip, None)
-            msg_chunk.append('{ip}:\t\t{hostname}'.format(**ip_info_dict))
+            msg_chunk.append('`{ip}`:\t\t{hostname}'.format(**ip_info_dict))
     if len(msg_chunk) > 0:
         blocks = [
-            bkb.make_context_section('Unknown IP recently connected.'),
+            bkb.make_context_section('Unknown IP(s) recently connected.'),
             bkb.make_block_divider(),
             bkb.make_block_section(msg_chunk)
         ]
