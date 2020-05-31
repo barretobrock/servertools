@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """Sends messages to Slack"""
 from slacktools import SlackTools
-from .keys import ServerKeys
+from kavalkilu import Keys
 
 
 class SlackComm:
     def __init__(self):
-        get_key = ServerKeys().get_key
+        get_key = Keys().get_key
         # self.grafana_creds = get_key('grafana-api')
         team = get_key('okr-name')
         xoxp = get_key('kodubot-usertoken')
