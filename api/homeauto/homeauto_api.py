@@ -32,7 +32,7 @@ def light_toggle():
     if light_name is None:
         raise ValueError('No light name selected')
     light_names = []
-    if light_name in ['garage', 'stairs']:
+    if light_name in ['garage', 'stairs', 'kit-strip']:
         # Handle both lights
         for i in [1, 2]:
             light = f'{light_name}-{i}'
