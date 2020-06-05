@@ -38,3 +38,11 @@
 #### Client-side
  - Install client
     `sudo apt install mosquitto-clients`
+
+### AUTO START ON POWER FAILURE
+ - Adjust settings in grub
+    `sudo nano /etc/default/grub`
+ - Add this in the file (this will make the system pause for 5 seconds before booting up on its own)
+    `GRUB_RECORDFAIL_TIMEOUT=5`
+ - Update the settings
+    `sudo update-grub`
