@@ -33,6 +33,7 @@ class OpenWRT(OpenWrtRpc):
             if ip.startswith('192.168'):
                 dev_dict[ip] = {
                     'hostname': device.hostname,
+                    'mac': device.mac
                 }
         return dev_dict
 
@@ -87,8 +88,9 @@ class OpenWRT(OpenWrtRpc):
         if ip not in self.current_connections.keys():
             return None
         hostname = self.current_connections[ip]['hostname']
+        mac = self.current_connections[ip]['mac']
 
-        result_dict = {'ip': ip, 'hostname': hostname}
+        result_dict = {'ip': ip, 'hostname': hostname, 'mac': mac}
         if port_range is not None:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             open_ports = []
