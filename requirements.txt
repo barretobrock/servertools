@@ -1,5 +1,6 @@
 amcrest==1.7.1
 Flask>=1.1.2
+flask_jsonpify==1.5.0
 kavalkilu>=1.1.22
 meteocalc==1.1.0
 numpy==1.18.4
