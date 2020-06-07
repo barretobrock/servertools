@@ -1,9 +1,10 @@
 """Collect weather data from DarkSky"""
-from kavalkilu import DarkSkyWeather, Log, LogArgParser, SensorLogger, DarkSkyWeatherSensor
+from kavalkilu import Log
+from servertools import NWSForecast, NWSForecastZone
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('darksky', log_dir='temps', log_lvl=LogArgParser().loglvl)
+log = Log('local', log_dir='temps')
 latlong_dict = {
     'darksky_austin': '30.3428,-97.7582',
     'darksky_tallinn': '59.4040,24.6540',

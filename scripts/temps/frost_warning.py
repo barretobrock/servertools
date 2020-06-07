@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import pandas as pd
-from kavalkilu import Log, LogArgParser, DarkSkyWeather
-from kavalkilu.local_tools import slack_comm, notify_channel, user_me
-
+from kavalkilu import Log
+from servertools import SlackWeatherNotification, NWSForecast, NWSForecastZone
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('frost_warn', log_dir='temps', log_lvl=LogArgParser().loglvl)
+log = Log('frost_warn', log_dir='temps')
 
-# Temp in C that serves as the floor of the warning
-austin = '30.3428,-97.7582'
-now = pd.datetime.now()
+now = datetime.now()
+weather = NWSForecast(NWSForecastZone.ATX)
+hours_df = weather.get_hourly_forecast()
 
-dark = DarkSkyWeather(austin)
-hours_df = dark.hourly_summary()
-# Filter by column & get only the next 10 hours of forecasted temps
-cols = ['time', 'temperature', 'apparentTemperature', 'dewPoint', 'windSpeed']
-hours_df = hours_df.loc[hours_df.time < (now + pd.Timedelta(hours=12)), cols]
+# Filter by column & get only the next 12 hours of forecasted temps
+cols = ['date', 'temperature', 'apparentTemperature', 'dewpoint', 'windSpeed']
+hours_df = hours_df.loc[hours_df.date < (now + pd.Timedelta(hours=12)), cols]
 
 logic_dict = {
-    'freeze': (hours_df.temperature < 0) & ((hours_df.dewPoint < -8) | (hours_df.windSpeed > 5)),
-    'frost': (hours_df.temperature < 2) & ((hours_df.dewPoint < -6) | (hours_df.windSpeed >= 5)),
-    'light frost': (hours_df.temperature < 2) & ((hours_df.dewPoint < -6) | (hours_df.windSpeed < 5)),
+    'freeze': (hours_df.temperature < 0) & ((hours_df.dewpoint < -8) | (hours_df.windSpeed > 5)),
+    'frost': (hours_df.temperature < 2) & ((hours_df.dewpoint < -6) | (hours_df.windSpeed >= 5)),
+    'light frost': (hours_df.temperature < 2) & ((hours_df.dewpoint < -6) | (hours_df.windSpeed < 5)),
 }
 
 warning = None
@@ -33,9 +31,10 @@ for name, cond in logic_dict.items():
         break
 
 if warning is not None:
+    swno = SlackWeatherNotification()
     lowest_temp = hours_df.temperature.min()
     highest_wind = hours_df.windSpeed.max()
-    msg = f'<@{user_me}> - {warning.title()} Warning: `{lowest_temp}C` `{highest_wind}m/s`'
-    slack_comm.send_message(notify_channel, msg)
+    # Send alert
+    swno.frost_alert(warning, lowest_temp, highest_wind)
 
 log.close()

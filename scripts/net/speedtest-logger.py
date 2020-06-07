@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Performs a speedtest assessment"""
+import paho.mqtt.publish as publish
 from speedtest import Speedtest
 from datetime import datetime as dt
 import pandas as pd
@@ -8,8 +9,6 @@ from kavalkilu import Log
 
 
 logg = Log('speedtest')
-
-
 # Prep speedtest by getting nearby servers
 logg.debug('Instantiating speedtest object.')
 speed = Speedtest()
@@ -33,10 +32,8 @@ test = pd.DataFrame({
 data_cols = ['download', 'upload', 'ping']
 test.loc[:, data_cols] = test[data_cols].applymap(lambda x: round(float(x), 4))
 
-# Connect to db
-# eng = MySQLLocal('speedtestdb')
-
-# Write dataframe to db
-# eng.write_dataframe('speedtest', test)
+for col in data_cols:
+    data = test[col].values[0]
+    publish.single(f'sensors/net/speed/{col}', data, hostname='homeserv.local')
 
 logg.close()

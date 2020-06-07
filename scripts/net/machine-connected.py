@@ -10,7 +10,7 @@ h = Hosts()
 ow = OpenWRT()
 
 logg.debug('Beginning conn status check for known devices.')
-ips = h.get_hosts(r'an-barret')
+ips = h.get_hosts_and_ips(r'an-barret')
 for ip_dict in ips:
     ip = ip_dict['ip']
     ip_changed_state = ow.check_ip_changed_connection(ip)
@@ -41,7 +41,7 @@ if len(unknown_ips) > 0:
             # Collect info on the ip; don't scan ports
             logg.debug(f'IP {ip} recently connected. Notifying channel.')
             ip_info_dict = ow.collect_ip_info(ip, None)
-            msg_chunk.append('`{ip}`:\t\t{hostname}'.format(**ip_info_dict))
+            msg_chunk.append('`{ip}`:\t\t{hostname}\t\t{mac}'.format(**ip_info_dict))
     if len(msg_chunk) > 0:
         blocks = [
             bkb.make_context_section('Unknown IP(s) recently connected.'),
