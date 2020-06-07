@@ -3,6 +3,7 @@
 from .camera import Amcrest
 from .database import MySQLLocal
 from .domoticz import Domoticz
+from .ecobee import EcoBee
 from .gif import GIF, GIFSlice, GIFTile
 from .hosts import ServerHosts
 from .keys import ServerKeys
@@ -14,7 +15,8 @@ from .roku import RokuTV
 from .selenium import ChromeDriver, BrowserAction
 from .slack_communicator import SlackComm
 from .text import MarkovText
-from .weather import DarkSkyWeather
+from .weather import OpenWeather, OWMLocation, YrNoWeather, YRNOLocation, \
+    NWSAlert, NWSAlertZone, SlackWeatherNotification, NWSForecast, NWSForecastZone
 
 from ._version import get_versions
 __version__ = get_versions()['version']
