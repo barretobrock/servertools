@@ -11,6 +11,7 @@ log = Log('frost_warn', log_dir='temps')
 now = datetime.now()
 weather = NWSForecast(NWSForecastZone.ATX)
 hours_df = weather.get_hourly_forecast()
+hours_df['date'] = pd.to_datetime(hours_df['date'])
 
 # Filter by column & get only the next 12 hours of forecasted temps
 cols = ['date', 'temperature', 'apparentTemperature', 'dewpoint', 'windSpeed']
