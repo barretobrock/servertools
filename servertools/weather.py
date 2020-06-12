@@ -5,8 +5,9 @@ import json
 import requests
 import re
 from datetime import datetime, timedelta
+from dateutil import tz
 from functools import reduce
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 import pandas as pd
 from meteocalc import feels_like, Temp, dew_point
 from pyowm import OWM
@@ -31,6 +32,10 @@ class SlackWeatherNotification:
                     "*{title}*\n{desc}".format(**alert_dict)
         return alert_txt
 
+    def _notify_channel(self, alert_blocks: List[dict]):
+        """Wrapper function to send alert to notification channel"""
+        self.sComm.st.send_message(self.sComm.notify_channel, '', alert_blocks)
+
     def severe_weather_alert(self, alert_df: pd.DataFrame):
         """Formats a severe weather notification for Slack & sends it"""
         alert_list = []
@@ -42,8 +47,7 @@ class SlackWeatherNotification:
             self.bkb.make_block_divider(),
             self.bkb.make_block_section(alert_list)
         ]
-
-        self.sComm.st.send_message(self.sComm.notify_channel, '', blocks=alert_blocks)
+        self._notify_channel(alert_blocks)
 
     def frost_alert(self, warning: str, lowest_temp: float, highest_wind: float):
         """Handles routines for alerting to a frost warning"""
@@ -52,8 +56,28 @@ class SlackWeatherNotification:
             self.bkb.make_block_divider(),
             self.bkb.make_block_section(f'{warning.title()} Warning: *`{lowest_temp}`*C *`{highest_wind}`*m/s')
         ]
-        self.sComm.st.send_message(self.sComm.notify_channel, '', blocks=blocks)
+        self._notify_channel(blocks)
 
+    def sig_temp_change_alert(self, temp_diff: float, apptemp_diff: float, temp_dict: dict):
+        """Handles routines for alerting a singificant change in temperature"""
+        msg_text = 'Temp higher at midnight `{t0_temp:.2f} ({t0_apptemp:.2f})` ' \
+                   'than midday `{t12_temp:.2f} ({t12_apptemp:.2f})` '\
+                   'diff: `{:.1f} ({:.1f})`'.format(temp_diff, apptemp_diff, **temp_dict)
+        blocks = [
+            self.bkb.make_context_section(f'Significant Temp Change Alert <@{self.sComm.user_me}>!'),
+            self.bkb.make_block_divider(),
+            self.bkb.make_block_section(msg_text)
+        ]
+        self._notify_channel(blocks)
+
+    def daily_weather_briefing(self, tomorrow: datetime, report: List[str]):
+        """Presents a daily weather report for the work week"""
+        blocks = [
+            self.bkb.make_context_section(f'*Weather Report for {tomorrow:%A, %d %B}*'),
+            self.bkb.make_block_divider(),
+            self.bkb.make_block_section(report)
+        ]
+        self._notify_channel(blocks)
 
 
 class NWSAlertZone:
@@ -155,9 +179,10 @@ class NWSForecastZone:
 
 
 class NWSForecast:
-    def __init__(self, zone: str):
+    def __init__(self, zone: str, tz: str = 'US/Central'):
         """"""
         self.raw_data = self._get_raw_data(zone)
+        self.tz = tz
 
     @staticmethod
     def _build_forecast_url(zone: str) -> str:
@@ -174,21 +199,29 @@ class NWSForecast:
         raw_data = resp_dict['properties']
         return raw_data
 
-    @staticmethod
-    def _process_time(raw_str: str, as_dt=False) -> Union[List[str], List[datetime]]:
+    def _process_time(self, raw_str: str, as_dt=False) -> Union[List[str], List[datetime]]:
         """Processes NWS timestamp (2020-06-06T21:00:00+00:00/PT5H) into a list of datetime strings"""
+        # Capture starting timestamp
         ts_str = re.search(r'[\d+\-]+T[\d:]+(?=\+)', raw_str).group()
+        # Duration area
+        # Capture day only
+        day_dur_match = re.search(r'(?<=P)\d+(?=D)', raw_str)
+        day_dur = 0 if day_dur_match is None else int(day_dur_match.group())
+        # Capture hour only
+        hour_dur_match = re.search(r'(?<=T)\d+(?=H)', raw_str)
+        hour_dur = 0 if hour_dur_match is None else int(hour_dur_match.group())
 
-        span_raw = re.search(r'(?<=/PT)\d+(?=H)', raw_str)
-        if span_raw is None:
-            # Day was also included
-            span_raw = re.search(r'(?<=/P)[\w\d+]+(?=H)', raw_str)
-            span = span_raw.group().split('DT')
-            span = int(span[0]) * 24 + int(span[1])
-        else:
-            span = int(span_raw.group())
+        # Add up the hours
+        span = (24 * day_dur) + hour_dur
 
-        ts_start = datetime.strptime(ts_str, '%Y-%m-%dT%H:%M:%S')
+        # Convert timestamp to UTC datetime obj
+        utc = tz.gettz('UTC')
+        local = tz.gettz(self.tz)
+        utc_dt = datetime.strptime(ts_str, '%Y-%m-%dT%H:%M:%S').replace(tzinfo=utc)
+        local_dt = utc_dt.astimezone(local)
+
+        # Set in local time
+        ts_start = local_dt
         ts_end = (ts_start + timedelta(hours=span))
         dt_rng = pd.date_range(ts_start, ts_end, freq='1H', closed='left')
         if as_dt:
@@ -204,28 +237,33 @@ class NWSForecast:
     def _process_data(self, data_type: str) -> pd.DataFrame:
         """Collects and processes temps from F to C"""
         raw_data_list = self.raw_data[data_type]['values']
+        uom = self.raw_data[data_type]['uom']
         processed_data = []
         for raw_data in raw_data_list:
             dates = self._process_time(raw_data['validTime'])
             val = raw_data['value']
+            if uom == 'unit:percent':
+                val = val / 100 if val > 0 else 0
             processed_data += [{'date': x, data_type: val} for x in dates]
         data_df = pd.DataFrame(processed_data)
-        # if any([x in data_type.lower() for x in ['temp', 'dew']]):
-        #     # Convert temp data from F to C
-        #     data_df[data_type] = data_df[data_type].apply(lambda x: self._fahr_to_celsius(x))
         return data_df
 
     def get_hourly_forecast(self) -> pd.DataFrame:
         """Processes raw forecast data into a dataframe"""
+        data_cols = ['temperature', 'dewpoint', 'relativeHumidity',
+                     'apparentTemperature', 'skyCover', 'windSpeed',
+                     'probabilityOfPrecipitation', 'quantitativePrecipitation']
         df_list = []
-        for data_type in ['temperature', 'dewpoint', 'relativeHumidity', 'apparentTemperature', 'skyCover', 'windSpeed']:
+        for data_type in data_cols:
             df_list.append(self._process_data(data_type))
 
         # Combine the dataframes
         forecast_df = reduce(lambda left, right: pd.merge(left, right, on=['date'], how='outer'), df_list)
+
         return forecast_df
 
-    def _build_summary(self, conditions: dict) -> str:
+    @staticmethod
+    def _build_summary(conditions: dict) -> str:
         """Takes in a dictionary of conditions and outputs a string"""
         coverage = conditions['coverage']
         weather = conditions['weather']
@@ -287,45 +325,49 @@ class OpenWeather:
     def three_hour_summary(self) -> pd.DataFrame:
         """3h summary for the next 5 days"""
         data = self.owm.three_hours_forecast(self.location).get_forecast()
-        return self._process_3h_fc_data(data, self.tz)
+        return self._process_3h_fc_data(data)
 
     def daily_summary(self) -> pd.DataFrame:
         """daily forecast for the next 5 days"""
         data = self.owm.daily_forecast(self.location, limit=5).get_forecast()
-        return self._process_daily_fc_data(data, self.tz)
+        return self._process_daily_fc_data(data)
 
-    @staticmethod
-    def _process_daily_fc_data(data: Union[Forecast], tz: str) -> pd.DataFrame:
+    def _extract_common_weather_data(self, datapoint: Any, temperatures: dict) -> dict:
+        """Extracts common (unchanging from hourly/daily methods) weather data
+        from a given data point"""
+        wind = datapoint.get_wind('meters_sec')['speed']
+        hum = datapoint.get_humidity()
+        # Apply 'feels like' temperature
+        feels = {f'apparent{k.title()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
+                 for k, v in temperatures.items()}
+        dew_pt = datapoint.get_dewpoint() if datapoint.get_dewpoint() is not None else dew_point(temperatures['avgTemp'], hum).c
+        pt_dict = {
+            'date': pd.to_datetime(datapoint.get_reference_time('iso')).tz_convert(self.tz).strftime('%F'),
+            'summary': datapoint.get_detailed_status(),
+            'precipIntensity': datapoint.get_rain().get('3h', 0),
+            'dewPoint': round(dew_pt, 2),
+            'humidity': hum / 100,
+            'pressure': datapoint.get_pressure()['press'],
+            'windSpeed': wind,
+            'windBearing': datapoint.get_wind('meters_sec')['deg'],
+            'cloudCover': datapoint.get_clouds() / 100,
+            'visibility': datapoint.get_visibility_distance()
+        }
+        pt_dict.update(temperatures)
+        pt_dict.update(feels)
+        return pt_dict
+
+    def _process_daily_fc_data(self, data: Forecast) -> pd.DataFrame:
+        """Process daily forecast data"""
         cleaned = []
         for pt in data:
             # Extract temperatures (day, min, max, night, eve, morn)
             temps = {f'{k}Temp': v for k, v in pt.get_temperature('celsius').items()}
             temps['avgTemp'] = round((temps['minTemp'] + temps['maxTemp']) / 2, 2)
-            wind = pt.get_wind('meters_sec')['speed']
-            hum = pt.get_humidity()
-            # Apply 'feels like' temperature
-            feels = {f'apparent{k.title()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
-                     for k, v in temps.items()}
-            dew_pt = pt.get_dewpoint() if pt.get_dewpoint() is not None else dew_point(temps['avgTemp'], hum).c
-            pt_dict = {
-                'date': pd.to_datetime(pt.get_reference_time('iso')).tz_convert(tz).strftime('%F'),
-                'summary': pt.get_detailed_status(),
-                'precipIntensity': pt.get_rain().get('3h', 0),
-                'dewPoint': round(dew_pt, 2),
-                'humidity': hum / 100,
-                'pressure': pt.get_pressure()['press'],
-                'windSpeed': wind,
-                'windBearing': pt.get_wind('meters_sec')['deg'],
-                'cloudCover': pt.get_clouds() / 100,
-                'visibility': pt.get_visibility_distance()
-            }
-            pt_dict.update(temps)
-            pt_dict.update(feels)
-            cleaned.append(pt_dict)
+            cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
 
-    @staticmethod
-    def _process_3h_fc_data(data: Union[Forecast], tz: str) -> pd.DataFrame:
+    def _process_3h_fc_data(self, data: Union[Forecast]) -> pd.DataFrame:
         """Process 3-hour forecast data"""
         cleaned = []
         for pt in data:
@@ -336,27 +378,7 @@ class OpenWeather:
                 'minTemp': temps_dict['temp_min'],
                 'maxTemp': temps_dict['temp_max']
             }
-            wind = pt.get_wind('meters_sec')['speed']
-            hum = pt.get_humidity()
-            # Apply 'feels like' temperature
-            feels = {f'apparent{k.title()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
-                     for k, v in temps.items()}
-            dew_pt = pt.get_dewpoint() if pt.get_dewpoint() is not None else dew_point(temps['avgTemp'], hum).c
-            pt_dict = {
-                'date': pd.to_datetime(pt.get_reference_time('iso')).tz_convert(tz).strftime('%F'),
-                'summary': pt.get_detailed_status(),
-                'precipIntensity': pt.get_rain().get('3h', 0),
-                'dewPoint': round(dew_pt, 2),
-                'humidity': hum / 100,
-                'pressure': pt.get_pressure()['press'],
-                'windSpeed': wind,
-                'windBearing': pt.get_wind('meters_sec')['deg'],
-                'cloudCover': pt.get_clouds() / 100,
-                'visibility': pt.get_visibility_distance()
-            }
-            pt_dict.update(temps)
-            pt_dict.update(feels)
-            cleaned.append(pt_dict)
+            cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
 
 
