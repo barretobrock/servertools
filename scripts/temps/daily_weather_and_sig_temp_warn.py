@@ -41,17 +41,14 @@ if apptemp_diff >= 5:
 
 # Send out daily report as well
 
-report = f"""
-*Weather Report for {tomorrow:%A, %d %B}*
-"""
-for hour in hours:
+report = []
+for hour in important_hours:
     precip_multiplier = int(round(temp_dict[f't{hour}_precip_prob'] * 10 / 2)) - 1
     line = '{0:02d}:00\t{{t{0}_temp:.0f}}\t({{t{0}_apptemp:.1f}})\t{{t{0}_precip_prob:.1%}}\t' \
            '{{t{0}_precip_int:.2f}}'.format(hour).format(**temp_dict)
     if precip_multiplier > 0:
         line += f"\t{''.join([':rain-drops:'] * precip_multiplier)}"
-    report += f'{line}\n'
-
-slack_comm.send_message(notify_channel, report)
+    report.append(line)
+swno.daily_weather_briefing(tomorrow, report)
 
 log.close()
