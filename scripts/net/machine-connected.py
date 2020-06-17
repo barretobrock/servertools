@@ -33,7 +33,7 @@ for ip_dict in ips:
 # Log active IPs
 device_df = pd.concat([pd.DataFrame(data=vals, index=[ip]) for ip, vals in ow.current_connections.items()])
 # Drop the mac address
-device_df = device_df.drop(['mac', 'since'], axis=1).reset_index().rename(columns={'index': 'ip'})
+device_df = device_df.reset_index().rename(columns={'index': 'ip'})
 # Add a dummy value column
 device_df['up'] = 1
 # Push to influx
