@@ -11,6 +11,7 @@ from dateutil import tz
 from functools import reduce
 from meteocalc import feels_like, Temp, dew_point
 from pyowm import OWM
+from pyowm.weatherapi25.weather import Weather
 from pyowm.weatherapi25.forecast import Forecast
 from yr.libyr import Yr
 from slacktools import BlockKitBuilder
@@ -324,7 +325,7 @@ class OpenWeather:
     def current_weather(self) -> pd.DataFrame:
         """Gets current weather for location"""
         cur = self.owm.weather_at_place(self.location).get_weather()
-        cur_df = self._process_3h_fc_data(cur)
+        cur_df = self._process_current_weather_data(cur)
         return cur_df
 
     def three_hour_summary(self) -> pd.DataFrame:
@@ -373,7 +374,7 @@ class OpenWeather:
             cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
 
-    def _process_3h_fc_data(self, data: Union[Forecast]) -> pd.DataFrame:
+    def _process_3h_fc_data(self, data: Forecast) -> pd.DataFrame:
         """Process 3-hour forecast data"""
         cleaned = []
         for pt in data:
@@ -386,6 +387,19 @@ class OpenWeather:
             }
             cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
+
+    def _process_current_weather_data(self, data: Weather) -> pd.DataFrame:
+        """Process current weather data"""
+        cleaned = []
+        temps_dict = data.get_temperature('celsius')
+        temps = {
+            'avgTemp': temps_dict['temp'],
+            'minTemp': temps_dict['temp_min'],
+            'maxTemp': temps_dict['temp_max']
+        }
+        cleaned.append(self._extract_common_weather_data(data, temps))
+        return pd.DataFrame(cleaned)
+
 
 
 class YRNOLocation:
