@@ -23,7 +23,7 @@ nextday['day'] = nextday['date'].dt.day
 nextday['hour'] = nextday['date'].dt.hour
 temp_dict = {}
 metrics_to_collect = dict(zip(
-    ['temperature', 'apparentTemperature', 'quantitativePrecipitation', 'probabilityOfPrecipitation'],
+    ['temp-avg', 'feels-temp-avg', 'precip-intensity', 'precip-prob'],
     ['temp', 'apptemp', 'precip_int', 'precip_prob'],
 ))
 # Determine which hours are important to examine (e.g., for commuting / outside work)
