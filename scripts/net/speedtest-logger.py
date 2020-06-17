@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Performs a speedtest assessment"""
-import paho.mqtt.publish as publish
 from speedtest import Speedtest
 from datetime import datetime as dt
 import pandas as pd
 from kavalkilu import Log
+from servertools import InfluxDBLocal, InfluxDBNames, InfluxTblNames
 
 
 logg = Log('speedtest')
+influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 # Prep speedtest by getting nearby servers
 logg.debug('Instantiating speedtest object.')
 speed = Speedtest()
@@ -31,9 +32,11 @@ test = pd.DataFrame({
 
 data_cols = ['download', 'upload', 'ping']
 test.loc[:, data_cols] = test[data_cols].applymap(lambda x: round(float(x), 4))
+# Add server details
+test['server'] = f'{best_server["sponsor"]} ({best_server["name"]})'
 
-for col in data_cols:
-    data = test[col].values[0]
-    publish.single(f'sensors/net/speed/{col}', data, hostname='homeserv.local')
+# Feed into Influx
+influx.write_df_to_table(InfluxTblNames.NETSPEED, test, 'server', ['download', 'upload', 'ping'], 'test_date')
+influx.close()
 
 logg.close()

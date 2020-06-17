@@ -1,7 +1,8 @@
 """Tracks all currently connected machines, notifies of IPs that
     haven't been statically assigned"""
+import pandas as pd
 from slacktools import BlockKitBuilder
-from servertools import OpenWRT, SlackComm
+from servertools import OpenWRT, SlackComm, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 from kavalkilu import Hosts, Log
 
 
@@ -9,6 +10,7 @@ logg = Log('machine-conn')
 h = Hosts()
 ow = OpenWRT()
 
+# Check for known devices
 logg.debug('Beginning conn status check for known devices.')
 ips = h.get_hosts_and_ips(r'an-barret')
 for ip_dict in ips:
@@ -27,6 +29,19 @@ for ip_dict in ips:
             sc.st.send_message(sc.wifi_channel,
                                f'Mehe ühik on koduvõrgust läinud :sadcowblob:')
 
+
+# Log active IPs
+device_df = pd.concat([pd.DataFrame(data=vals, index=[ip]) for ip, vals in ow.current_connections.items()])
+# Drop the mac address
+device_df = device_df.drop(['mac', 'since'], axis=1).reset_index().rename(columns={'index': 'ip'})
+# Add a dummy value column
+device_df['up'] = 1
+# Push to influx
+influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
+influx.write_df_to_table(InfluxTblNames.MACHINES, device_df, ['ip', 'hostname'], 'up')
+influx.close()
+
+# Unknown IP scan
 logg.debug('Beginning scan of unknown ips.')
 unknown_ips = ow.show_unknown_ips()
 logg.debug(f'Found {len(unknown_ips)} unknown ips.')
