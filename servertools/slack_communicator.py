@@ -7,13 +7,8 @@ from kavalkilu import Keys
 
 class SlackComm:
     def __init__(self):
-        get_key = Keys().get_key
-        # self.grafana_creds = get_key('grafana-api')
-        team = get_key('okr-name')
-        xoxp = get_key('kodubot-usertoken')
-        xoxb = get_key('kodubot-useraccess')
-
-        self.st = SlackTools(team, xoxp_token=xoxp, xoxb_token=xoxb)
+        vcreds = Keys().get_key('viktor_creds')
+        self.st = SlackTools(**vcreds)
         self.alert_channel = 'alerts'
         self.notify_channel = 'notifications'
         self.wifi_channel = 'wifi-pinger-dinger'

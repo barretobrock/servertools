@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import re
 import json
 import requests
-import re
+import pandas as pd
+from typing import List, Optional, Union, Any
 from datetime import datetime, timedelta
 from dateutil import tz
 from functools import reduce
-from typing import List, Optional, Union, Any
-import pandas as pd
 from meteocalc import feels_like, Temp, dew_point
 from pyowm import OWM
 from pyowm.weatherapi25.forecast import Forecast
 from yr.libyr import Yr
-from urllib.request import urlopen
 from slacktools import BlockKitBuilder
 from kavalkilu import Keys
 from .slack_communicator import SlackComm
@@ -322,6 +321,12 @@ class OpenWeather:
         self.location = location
         self.tz = tz
 
+    def current_weather(self) -> pd.DataFrame:
+        """Gets current weather for location"""
+        cur = self.owm.weather_at_place(self.location).get_weather()
+        cur_df = self._process_3h_fc_data(cur)
+        return cur_df
+
     def three_hour_summary(self) -> pd.DataFrame:
         """3h summary for the next 5 days"""
         data = self.owm.three_hours_forecast(self.location).get_forecast()
@@ -340,7 +345,8 @@ class OpenWeather:
         # Apply 'feels like' temperature
         feels = {f'apparent{k.title()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
                  for k, v in temperatures.items()}
-        dew_pt = datapoint.get_dewpoint() if datapoint.get_dewpoint() is not None else dew_point(temperatures['avgTemp'], hum).c
+        dew_pt = datapoint.get_dewpoint() if datapoint.get_dewpoint() is not None \
+            else dew_point(temperatures['avgTemp'], hum).c
         pt_dict = {
             'date': pd.to_datetime(datapoint.get_reference_time('iso')).tz_convert(self.tz).strftime('%F'),
             'summary': datapoint.get_detailed_status(),
@@ -437,80 +443,4 @@ class YrNoWeather:
         )
         # Flatten the columns for the dataframe, but keep everything preserved from each level
         df.columns = ['_'.join(col).strip() for col in df.columns.values]
-        return df
-
-
-class DarkSkyWeather:
-    """
-    Use Dark Sky API to get weather forecast
-    Args for __init__:
-        latlong: str, format: "latitude,longitude"
-    """
-    def __init__(self, latlong='59.4049,24.6768', tz='US/Central'):
-        self.latlong = latlong
-        self.tz = tz
-        self.url_prefix = 'https://api.darksky.net/forecast'
-        k = ServerKeys()
-        self.DARK_SKY_API = k.get_key('darksky_api')
-        self.DARK_SKY_URL = "{}/{}/{}?units=si&exclude=flags".format(self.url_prefix, self.DARK_SKY_API, self.latlong)
-        self.data = self._get_data()
-
-    def _get_data(self):
-        """Returns weather data on given location"""
-        # get weather forecast from dark sky api
-        darksky = urlopen(self.DARK_SKY_URL).read().decode('utf-8')
-        data = json.loads(darksky)
-        return data
-
-    def _format_tables(self, data):
-        """Takes in a grouping of data and returns as a pandas dataframe"""
-        if isinstance(data, list):
-            # Dealing with multiple rows of data
-            df = pd.DataFrame(data)
-        elif isinstance(data, dict):
-            # Dealing with a single row of data
-            df = pd.DataFrame(data, index=[0])
-
-        # Convert any "time" column to locally-formatted datetime
-        time_cols = [col for col in df.columns if any([x in col.lower() for x in ['time', 'expire']])]
-        df = self._convert_time_cols(time_cols, df)
-
-        return df
-
-    def _convert_time_cols(self, cols, df):
-        """Converts time columns from epoch to local time"""
-        if len(cols) > 0:
-            for time_col in cols:
-                # Convert column to datetime
-                dtt_col = pd.to_datetime(df[time_col], unit='s')
-                # Convert datetime col to local timezone and remove tz
-                dtt_col = dtt_col.dt.tz_localize('utc').dt.tz_convert(self.tz).dt.tz_localize(None)
-                df[time_col] = dtt_col
-        return df
-
-    def current_summary(self):
-        """Get current weather summary"""
-        data = self.data['currently']
-        df = self._format_tables(data)
-        return df
-
-    def hourly_summary(self):
-        """Get 48 hour weather forecast"""
-        data = self.data['hourly']['data']
-        df = self._format_tables(data)
-        return df
-
-    def daily_summary(self):
-        """Get 7-day weather forecast"""
-        data = self.data['daily']['data']
-        df = self._format_tables(data)
-        return df
-
-    def get_alerts(self):
-        """Determines if there are any active weather alerts"""
-        if 'alerts' not in self.data.keys():
-            # No alerts
-            return None
-        alerts = self.data['alerts']
-        df = self._format_tables(alerts)
         return df
