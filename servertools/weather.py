@@ -250,12 +250,21 @@ class NWSForecast:
 
     def get_hourly_forecast(self) -> pd.DataFrame:
         """Processes raw forecast data into a dataframe"""
-        data_cols = ['temperature', 'dewpoint', 'relativeHumidity',
-                     'apparentTemperature', 'skyCover', 'windSpeed',
-                     'probabilityOfPrecipitation', 'quantitativePrecipitation']
+        # Original: new
+        data_cols = {
+            'temperature': 'temp-avg',
+            'dewpoint': 'dewpoint',
+            'relativeHumidity': 'relative-humidity',
+            'apparentTemperature': 'feels-temp-avg',
+            'skyCover': 'cloud-cover',
+            'windSpeed': 'wind-speed',
+            'probabilityOfPrecipitation': 'precip-prob',
+            'quantitativePrecipitation': 'precip-intensity'
+        }
+
         df_list = []
-        for data_type in data_cols:
-            df_list.append(self._process_data(data_type))
+        for original, new_col in data_cols.items():
+            df_list.append(self._process_data(original).rename(columns={original: new_col}))
 
         # Combine the dataframes
         forecast_df = reduce(lambda left, right: pd.merge(left, right, on=['date'], how='outer'), df_list)
@@ -344,20 +353,20 @@ class OpenWeather:
         wind = datapoint.get_wind('meters_sec')['speed']
         hum = datapoint.get_humidity()
         # Apply 'feels like' temperature
-        feels = {f'apparent{k.title()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
+        feels = {f'feels-{k.lower()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
                  for k, v in temperatures.items()}
         dew_pt = datapoint.get_dewpoint() if datapoint.get_dewpoint() is not None \
-            else dew_point(temperatures['avgTemp'], hum).c
+            else dew_point(temperatures['temp-avg'], hum).c
         pt_dict = {
             'date': pd.to_datetime(datapoint.get_reference_time('iso')).tz_convert(self.tz).strftime('%F'),
             'summary': datapoint.get_detailed_status(),
-            'precipIntensity': datapoint.get_rain().get('3h', 0),
-            'dewPoint': round(dew_pt, 2),
+            'precip-intensity': datapoint.get_rain().get('3h', 0),
+            'dewpoint': round(dew_pt, 2),
             'humidity': hum / 100,
             'pressure': datapoint.get_pressure()['press'],
-            'windSpeed': wind,
-            'windBearing': datapoint.get_wind('meters_sec')['deg'],
-            'cloudCover': datapoint.get_clouds() / 100,
+            'wind-speed': wind,
+            'wind-bearing': datapoint.get_wind('meters_sec')['deg'],
+            'cloud-cover': datapoint.get_clouds() / 100,
             'visibility': datapoint.get_visibility_distance()
         }
         pt_dict.update(temperatures)
@@ -369,8 +378,8 @@ class OpenWeather:
         cleaned = []
         for pt in data:
             # Extract temperatures (day, min, max, night, eve, morn)
-            temps = {f'{k}Temp': v for k, v in pt.get_temperature('celsius').items()}
-            temps['avgTemp'] = round((temps['minTemp'] + temps['maxTemp']) / 2, 2)
+            temps = {f'temp-{k}': v for k, v in pt.get_temperature('celsius').items()}
+            temps['temp-avg'] = round((temps['temp-min'] + temps['temp-max']) / 2, 2)
             cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
 
@@ -381,9 +390,9 @@ class OpenWeather:
             # Extract temperatures (day, min, max, night, eve, morn)
             temps_dict = pt.get_temperature('celsius')
             temps = {
-                'avgTemp': temps_dict['temp'],
-                'minTemp': temps_dict['temp_min'],
-                'maxTemp': temps_dict['temp_max']
+                'temp-avg': temps_dict['temp'],
+                'temp-min': temps_dict['temp_min'],
+                'temp-max': temps_dict['temp_max']
             }
             cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
@@ -393,13 +402,12 @@ class OpenWeather:
         cleaned = []
         temps_dict = data.get_temperature('celsius')
         temps = {
-            'avgTemp': temps_dict['temp'],
-            'minTemp': temps_dict['temp_min'],
-            'maxTemp': temps_dict['temp_max']
+            'temp-avg': temps_dict['temp'],
+            'temp-min': temps_dict['temp_min'],
+            'temp-max': temps_dict['temp_max']
         }
         cleaned.append(self._extract_common_weather_data(data, temps))
         return pd.DataFrame(cleaned)
-
 
 
 class YRNOLocation:
@@ -427,11 +435,11 @@ class YrNoWeather:
             'from': pd.to_datetime(data['@from']),
             'to': pd.to_datetime(data['@to']),
             'summary': data['symbol']['@name'],
-            'precipIntensity': float(data['precipitation']['@value']),
-            'windBearing': float(data['windDirection']['@deg']),
-            'windSpeed': float(data['windSpeed']['@mps']),
-            'windSummary': data['windSpeed']['@name'],
-            'temperature': float(data['temperature']['@value']),
+            'precip-intensity': float(data['precipitation']['@value']),
+            'wind-bearing': float(data['windDirection']['@deg']),
+            'wind-speed': float(data['windSpeed']['@mps']),
+            'wind-summary': data['windSpeed']['@name'],
+            'temp-avg': float(data['temperature']['@value']),
             'pressure': float(data['pressure']['@value'])
         }
 
