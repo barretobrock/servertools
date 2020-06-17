@@ -11,7 +11,7 @@ log = Log('cam_active')
 ow = OpenWRT()
 hosts = Hosts()
 # Get only cameras without numbers in the name
-cam_info_list = hosts.get_hosts_and_ips(r'(?!^ac-.*\d.*$)^ac-.+$')
+cam_info_list = hosts.get_hosts_and_ips(r'(?!^ac-.*(\d.*|doorbell)$)^ac-.+$')
 
 res_list = []
 currently_active_ips = ow.get_active_connections()

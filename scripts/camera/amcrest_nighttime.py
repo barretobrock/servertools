@@ -10,7 +10,7 @@ from kavalkilu import Log, Hosts
 log = Log('cam_night')
 hosts = Hosts()
 # Get only cameras without numbers in the name
-cam_info_list = hosts.get_hosts_and_ips(r'(?!^ac-.*\d.*$)^ac-.+$')
+cam_info_list = hosts.get_hosts_and_ips(r'^ac-(ga|el)')
 
 
 for cam_dict in cam_info_list:
