@@ -16,6 +16,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 0 */3 * * *             $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py -lvl debug
 ## ENV DATA COLECTION
 #*/10 * * * *           $PY3    $HOME/$SCRIPTS/temps/ecobee_temps.py
+*/10 * * * *            $PY3    $HOME/$SCRIPTS/temps/local_weather.py -lvl debug
 ## HOME AUTOMATION
 */5 03-22 * * *         $PY3    $HOME/$SCRIPTS/camera/amcrest_notify_zone.py -lvl debug
 5 23 * * *              $PY3    $HOME/$SCRIPTS/camera/amcrest_nighttime.py -lvl debug
