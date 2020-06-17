@@ -17,6 +17,18 @@ from influxdb import InfluxDBClient
 from kavalkilu import Hosts, Keys
 
 
+class InfluxDBNames:
+    HOMEAUTO = 'homeauto'
+
+
+class InfluxTblNames:
+    WEATHER = 'weather'
+    TEMPS = 'temps'
+    NETSPEED = 'net-speed'
+    LOGS = 'logs'
+    MACHINES = 'machine-activity'
+
+
 class InfluxDBLocal(InfluxDBClient):
     def __init__(self, db: str, timezone: str = 'US/Central'):
         h = Hosts()

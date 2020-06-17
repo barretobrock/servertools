@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from .camera import Amcrest
-from .database import MySQLLocal, InfluxDBLocal, GSheetReader, SQLLiteLocal
+from .database import InfluxDBNames, InfluxTblNames, InfluxDBLocal, GSheetReader, SQLLiteLocal
 from .domoticz import Domoticz
 from .ecobee import EcoBee
 from .gif import GIF, GIFSlice, GIFTile
