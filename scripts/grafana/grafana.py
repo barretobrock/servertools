@@ -4,25 +4,25 @@ import os
 import time
 import requests
 from grafana_api.grafana_face import GrafanaFace
-from kavalkilu import Keys, Log, LogArgParser
-from servertools import , notify_channel
+from kavalkilu import Keys, Log
+from servertools import SlackComm
 
 
-log = Log('grafana_snapper', log_lvl=LogArgParser().loglvl)
-get_key = Keys().get_key
-creds = get_key('grafana-api')
+log = Log('grafana_snapper')
+creds = Keys().get_key('grafana-api')
+scom = SlackComm()
 
 
 def get_pic_and_upload(url, name):
     """Captures dashboard panel at URL and uploads to #notifications slack channel"""
 
-    resp = requests.get(url, headers={'Authorization': 'Bearer {}'.format(creds['key'])})
+    resp = requests.get(url, headers={'Authorization': f'Bearer {creds["key"]}'})
 
     temp_file = os.path.abspath('/tmp/dash_snap.png')
     with open(temp_file, 'wb') as f:
         for chunk in resp:
             f.write(chunk)
-    slack_comm.upload_file(notify_channel, temp_file, name)
+    scom.st.upload_file(scom.notify_channel, temp_file, name)
 
 
 # The URL template to use
@@ -45,7 +45,7 @@ snap_panels = [
 ]
 
 
-slack_comm.send_message(notify_channel, 'Daily Report coming up!')
+scom.st.send_message(scom.notify_channel, 'Daily Report coming up!')
 # Use grafana API to get dashboard UID
 gapi = GrafanaFace(auth=creds['key'], host=creds['host'])
 for dash_tag in ['home_automation', 'speedtests', 'logs', 'pihole']:

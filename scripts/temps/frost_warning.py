@@ -14,13 +14,13 @@ hours_df = weather.get_hourly_forecast()
 hours_df['date'] = pd.to_datetime(hours_df['date'])
 
 # Filter by column & get only the next 12 hours of forecasted temps
-cols = ['date', 'temperature', 'apparentTemperature', 'dewpoint', 'windSpeed']
+cols = ['date', 'temp-avg', 'feels-temp-avg', 'dewpoint', 'wind-speed']
 hours_df = hours_df.loc[hours_df.date < (now + pd.Timedelta(hours=12)), cols]
 
 logic_dict = {
-    'freeze': (hours_df.temperature < 0) & ((hours_df.dewpoint < -8) | (hours_df.windSpeed > 5)),
-    'frost': (hours_df.temperature < 2) & ((hours_df.dewpoint < -6) | (hours_df.windSpeed >= 5)),
-    'light frost': (hours_df.temperature < 2) & ((hours_df.dewpoint < -6) | (hours_df.windSpeed < 5)),
+    'freeze': (hours_df['temp-avg'] < 0) & ((hours_df['dewpoint'] < -8) | (hours_df['wind-speed'] > 5)),
+    'frost': (hours_df['temp-avg'] < 2) & ((hours_df['dewpoint'] < -6) | (hours_df['wind-speed'] >= 5)),
+    'light frost': (hours_df['temp-avg'] < 2) & ((hours_df['dewpoint'] < -6) | (hours_df['wind-speed'] < 5)),
 }
 
 warning = None
@@ -33,8 +33,8 @@ for name, cond in logic_dict.items():
 
 if warning is not None:
     swno = SlackWeatherNotification()
-    lowest_temp = hours_df.temperature.min()
-    highest_wind = hours_df.windSpeed.max()
+    lowest_temp = hours_df['temp-avg'].min()
+    highest_wind = hours_df['wind-speed'].max()
     # Send alert
     swno.frost_alert(warning, lowest_temp, highest_wind)
 
