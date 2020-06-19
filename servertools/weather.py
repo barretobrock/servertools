@@ -60,9 +60,9 @@ class SlackWeatherNotification:
 
     def sig_temp_change_alert(self, temp_diff: float, apptemp_diff: float, temp_dict: dict):
         """Handles routines for alerting a singificant change in temperature"""
-        msg_text = 'Temp higher at midnight `{t0_temp:.2f} ({t0_apptemp:.2f})` ' \
-                   'than midday `{t12_temp:.2f} ({t12_apptemp:.2f})` '\
-                   'diff: `{:.1f} ({:.1f})`'.format(temp_diff, apptemp_diff, **temp_dict)
+        msg_text = f'Temp higher at midnight `{temp_dict[0]["temp"]:.2f} ({temp_dict[0]["apptemp"]:.2f})` ' \
+                   f'than midday `{temp_dict[12]["temp"]:.2f} ({temp_dict[12]["apptemp"]:.2f})` '\
+                   f'diff: `{temp_diff:.1f} ({apptemp_diff:.1f})`'
         blocks = [
             self.bkb.make_context_section(f'Significant Temp Change Alert <@{self.sComm.user_me}>!'),
             self.bkb.make_block_divider(),
@@ -242,7 +242,7 @@ class NWSForecast:
         for raw_data in raw_data_list:
             dates = self._process_time(raw_data['validTime'])
             val = raw_data['value']
-            if uom == 'unit:percent':
+            if 'percent' in uom:
                 val = val / 100 if val > 0 else 0
             processed_data += [{'date': x, data_type: val} for x in dates]
         data_df = pd.DataFrame(processed_data)

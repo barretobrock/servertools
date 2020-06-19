@@ -17,7 +17,9 @@ class Amcrest:
     def __init__(self, ip: str, port: int = 80):
         self.ip = ip
         self.creds = Keys().get_key('webcam_api')
-        self.config_url = f'http://{ip}/cgi-bin/configManager.cgi?action=setConfig'
+        self.base_url = f'http://{ip}/cgi-bin'
+        self.base_url_with_cred = f'http://{self.creds["user"]}:{self.creds["password"]}@{ip}/cgi-bin'
+        self.config_url = f'{self.base_url}/configManager.cgi?action=setConfig'
         try:
             self.camera = amcrest.AmcrestCamera(ip, port, self.creds['user'], self.creds['password']).camera
             self.is_connected = True
@@ -97,3 +99,16 @@ class Amcrest:
         self.toggle_motion(armed)
         if self.is_ptz_enabled:
             self.set_ptz_flag(armed)
+
+    def get_video_stream(self, channel: int = 0, subtype: int = 1) -> str:
+        """
+        Outputs the video stream url
+        Args:
+            channel: int, which channel to use. default = 0
+            subtype: int, stream type to use. 0 = main, 1 = extra_1, etc
+                default = 1
+
+        Returns:
+            str, the url to the stream
+        """
+        return f'{self.base_url_with_cred}/mjpg/video.cgi?channel={channel}&subtype={subtype}'
