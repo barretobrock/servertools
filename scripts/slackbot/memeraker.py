@@ -53,7 +53,7 @@ if len(msgs) > 0:
         f.write(msgs[0]['ts'])
 
 # Filter messages that have a non-empty text field
-msgs = [x for x in msgs if x['text'] != '']
+msgs = [x for x in msgs if x['text'] != '' and float(x['ts']) > last_timestamp.timestamp()]
 logg.debug(f'Found {len(msgs)} message(s) in DM channel from the given time range!')
 
 # We've gotten the messages that were sent only recently. Now let's try to parse out the memes!
