@@ -25,7 +25,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 17 16 * * 0-5           $PY3    $HOME/$SCRIPTS/temps/daily_weather_and_sig_temp_warn.py
 */10 * * * *            $PY3    $HOME/$SCRIPTS/temps/severe_weather_check.py
 #15 */4 * * *           $PY3    $HOME/$SCRIPTS/slackbot/slack_logger.py
-19 * * * *              $PY3    $HOME/$SCRIPTS/slackbot/memeraker.py
+19 10-14 * * 1-5        $PY3    $HOME/$SCRIPTS/slackbot/memeraker.py -lvl debug
 
 # Vpulse Automation
 #40 03 * * * export DISPLAY=:0; $PY3 $HOME/$SENSORS/vpulse/vpulse_auto.py -lvl debug

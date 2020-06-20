@@ -1,7 +1,6 @@
 """Message links to memes for Viktor to post periodically"""
 import os
 import re
-import sys
 import time
 import numpy as np
 from typing import List
@@ -13,14 +12,12 @@ from kavalkilu import Keys, Log
 logg = Log('memeraker')
 vcreds = Keys().get_key('viktor_creds')
 st = SlackTools(**vcreds)
-# bkb = BlockKitBuilder()
 user_me = 'UM35HE6R5'
-# Used to select precise start time
-x_mins_before = (datetime.now() - timedelta(minutes=60))
 
-# Wine review text
+# Wine review text & previous stop timestamp
 ddir = os.path.join(os.path.expanduser('~'), 'data')
 fpath = os.path.join(ddir, 'mkov_wines.txt')
+ts_path = os.path.join(ddir, 'last_memeraker_ts')
 
 
 def post_memes(reviews: List[str], memes: List[str], wait_min: int = 5, wait_max: int = 60):
@@ -34,19 +31,29 @@ def post_memes(reviews: List[str], memes: List[str], wait_min: int = 5, wait_max
         time.sleep(wait_s)
 
 
-# Get my dm channel
-resp = st.bot.conversations_open(users=user_me)
-if resp['ok']:
-    channel = resp['channel']['id']
+# Read in the last timestamp. if nothing, default to one hour ago
+if os.path.exists(ts_path):
+    with open(ts_path) as f:
+        last_timestamp = datetime.fromtimestamp(float(f.read().strip()))
+    logg.debug(f'Found timestamp of {last_timestamp}')
 else:
-    logg.debug('Could not get DM channel id.')
-    logg.close()
-    sys.exit(1)
+    last_timestamp = (datetime.now() - timedelta(minutes=60))
+    logg.debug(f'No pre-existing timestamp found. Setting as {last_timestamp}')
+
 
 # Scan Viktor's dms from up to 5 mins ago
-msgs = st.search_messages_by_date(from_uid=user_me, on_date=x_mins_before, after_ts=x_mins_before)
+msgs = st.search_messages_by_date(channel='memeraker', after_date=last_timestamp,
+                                  after_ts=last_timestamp, max_results=100)
+# Search results are ordered from the most recent, so set the most recent one
+# as the timestamp to look from at the next instantiation of this script
+if len(msgs) > 0:
+    logg.debug('Rewriting timestamp file with latest result\'s timestamp')
+    # Rewrite the timestamp file
+    with open(ts_path, 'w') as f:
+        f.write(msgs[0]['ts'])
 
-# Filter messages that were in the DM channel and after the timestamp
+# Filter messages that have a non-empty text field
+msgs = [x for x in msgs if x['text'] != '']
 logg.debug(f'Found {len(msgs)} message(s) in DM channel from the given time range!')
 
 # We've gotten the messages that were sent only recently. Now let's try to parse out the memes!
@@ -57,11 +64,11 @@ for msg in msgs:
     raw_links_list = re.split(r'\s+', content)
     for raw_link in raw_links_list:
         # Try to parse out the link
-        link = re.search(r'https.*\.(jpg|png)', raw_link)
+        link = re.search(r'https.*\.(jpe?g|png)', raw_link)
         if link is not None:
             meme_links.append(link.group())
 
-logg.debug(f'{len(meme_links)} link(s) parsed.')
+logg.debug(f'{len(meme_links)} link(s) successfully parsed.')
 if len(meme_links) > 0:
     # Load the reviews
     with open(os.path.join(ddir, fpath)) as f:
