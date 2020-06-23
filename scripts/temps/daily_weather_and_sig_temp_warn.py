@@ -44,7 +44,7 @@ if apptemp_diff >= 5:
 
 report = ['hour\tt\tft\tr-prob\tr-int']
 for h in important_hours:
-    precip_multiplier = round(temp_dict[h]['precip_prob'] * 10 / 2) - 1
+    precip_multiplier = int(round(temp_dict[h]['precip_prob'] * 10 / 2) - 1)
     line = f'{h:02d}:00\t{temp_dict[h]["temp"]:.0f}\t({temp_dict[h]["apptemp"]:.1f})\t' \
            f'{temp_dict[h]["precip_prob"]:.1%}\t{temp_dict[h]["precip_int"]:.2f}'
     if precip_multiplier > 0:
