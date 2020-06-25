@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from .camera import Amcrest
-from .database import InfluxDBNames, InfluxTblNames, InfluxDBLocal, GSheetReader, SQLLiteLocal
+from .database import GSheetReader, SQLLiteLocal
 from .domoticz import Domoticz
 from .ecobee import EcoBee
 from .gif import GIF, GIFSlice, GIFTile
@@ -14,7 +14,7 @@ from .openwrt import OpenWRT
 from .roku import RokuTV
 from .selenium import ChromeDriver, BrowserAction
 from .slack_communicator import SlackComm
-from .text import MarkovText
+from .text import MarkovModel, XPathExtractor, TextCleaner, TextHelper
 from .weather import OpenWeather, OWMLocation, YrNoWeather, YRNOLocation, \
     NWSAlert, NWSAlertZone, SlackWeatherNotification, NWSForecast, NWSForecastZone
 
