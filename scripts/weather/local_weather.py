@@ -1,10 +1,10 @@
 """Collect weather data from DarkSky"""
-from kavalkilu import Log
-from servertools import OpenWeather, OWMLocation, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from servertools import OpenWeather, OWMLocation
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('local', log_dir='temps')
+log = Log('local', log_dir='weather')
 influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 
 current = OpenWeather(OWMLocation.ATX).current_weather()

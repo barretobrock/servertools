@@ -7,7 +7,7 @@ from servertools import NWSForecast, NWSForecastZone, SlackWeatherNotification
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('significant_change', log_dir='temps')
+log = Log('significant_change', log_dir='weather')
 
 swno = SlackWeatherNotification()
 

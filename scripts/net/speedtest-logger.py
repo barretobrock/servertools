@@ -4,8 +4,7 @@
 from speedtest import Speedtest
 from datetime import datetime as dt
 import pandas as pd
-from kavalkilu import Log
-from servertools import InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 
 
 logg = Log('speedtest')

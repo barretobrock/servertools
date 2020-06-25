@@ -7,7 +7,7 @@ from servertools import EcoBee
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('ecobee_temp', log_dir='temps')
+log = Log('ecobee_temp', log_dir='weather')
 eco = EcoBee()
 
 temp_now = datetime.now()

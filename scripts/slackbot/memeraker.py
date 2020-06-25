@@ -64,7 +64,7 @@ for msg in msgs:
     raw_links_list = re.split(r'\s+', content)
     for raw_link in raw_links_list:
         # Try to parse out the link
-        link = re.search(r'https.*\.(jpe?g|png|gif)', raw_link)
+        link = re.search(r'^https:\/{2}(?!i\.redd\.it).*\.(jpe?g|png|gif)$', raw_link)
         if link is not None:
             meme_links.append(link.group())
 
