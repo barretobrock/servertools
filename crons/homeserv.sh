@@ -24,6 +24,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 20 19 * 10-12,1-3 *     $PY3    $HOME/$SCRIPTS/weather/frost_warning.py # Run Oct - March only
 17 16 * * 0-5           $PY3    $HOME/$SCRIPTS/weather/daily_weather_and_sig_temp_warn.py
 */10 * * * *            $PY3    $HOME/$SCRIPTS/weather/severe_weather_check.py
+17 10 * * *             $PY3    $HOME/$SCRIPTS/weather/moon_phase.py
 #15 */4 * * *           $PY3    $HOME/$SCRIPTS/slackbot/slack_logger.py
 21 9 * * *              $PY3    $HOME/$SCRIPTS/slackbot/emoji_scraper.py
 19 10-14 * * 1-5        $PY3    $HOME/$SCRIPTS/slackbot/memeraker.py -lvl debug
