@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Sends messages to Slack"""
-from slacktools import SlackTools
+from slacktools import SlackTools, BlockKitBuilder
 from kavalkilu import Keys
 
 
@@ -9,6 +9,7 @@ class SlackComm:
     def __init__(self):
         vcreds = Keys().get_key('viktor_creds')
         self.st = SlackTools(**vcreds)
+        self.bkb = BlockKitBuilder()
         self.alert_channel = 'alerts'
         self.notify_channel = 'notifications'
         self.wifi_channel = 'wifi-pinger-dinger'
