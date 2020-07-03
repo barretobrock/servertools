@@ -28,6 +28,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 #15 */4 * * *           $PY3    $HOME/$SCRIPTS/slackbot/slack_logger.py
 21 9 * * *              $PY3    $HOME/$SCRIPTS/slackbot/emoji_scraper.py
 19 10-14 * * 1-5        $PY3    $HOME/$SCRIPTS/slackbot/memeraker.py -lvl debug
+27 8 * * *              $PY3    $HOME/$SCRIPTS/slackbot/word-of-the-day.py -lvl debug
 
 # Vpulse Automation
 #40 03 * * * export DISPLAY=:0; $PY3 $HOME/$SENSORS/vpulse/vpulse_auto.py -lvl debug

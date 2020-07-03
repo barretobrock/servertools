@@ -4,13 +4,12 @@ import time
 import json
 from urllib.request import Request, urlopen
 from lxml import etree
-from slacktools import SlackTools
+from servertools import SlackComm
 from kavalkilu import Keys, Path, Log
 
 
-logg = Log('emoji-scraper')
-vcreds = Keys().get_key('viktor_creds')
-st = SlackTools(**vcreds)
+logg = Log('emoji-scraper', log_to_db=True)
+scom = SlackComm()
 
 p = Path()
 fpath = p.easy_joiner(p.data_dir, 'slackmojis.json')
@@ -20,7 +19,7 @@ req = Request(url, headers={'User-Agent': 'Magic Browser'})
 resp = urlopen(req)
 if resp.code != 200:
     # unsuccessful attempt, but still notify the channel
-    st.send_message(chan, f'Failed to pull slackmoji report: {resp.status_code}')
+    scom.st.send_message(chan, f'Failed to pull slackmoji report: {resp.status_code}')
     sys.exit(1)
 
 htmlparser = etree.HTMLParser()
@@ -46,11 +45,22 @@ for emoji in emojis:
                 'link': emo_link
             }
 
+help_text = """
+*Emoji Upload Process*
+ - Open the image in a browser (click the link or right click the image -> "open link")
+ - Right click image -> `Save image as...` 
+ - Go to the <https://orbitalkettlerelay.slack.com/customize/emoji?utm_source=in-prod&utm_medium=inprod-customize_link-slack_menu-click|custom emoji page> for OKR
+ - Click `Add Custom Emoji`
+ - Upload file & give it a unique name! 
+"""
+
 if len(new_emojis) > 0:
-    st.send_message('emoji_suggestions', 'Found some new emojis from slackmojis!')
+    scom.st.send_message(chan, f'Found {len(new_emojis)} new emoji(s) from slackmojis!\n\n'
+                               f'{help_text}')
     for name, e_dict in new_emojis.items():
-        st.send_message('emoji_suggestions', f'<{e_dict["link"]}|{e_dict["name"]}>')
+        scom.st.send_message('emoji_suggestions', f'<{e_dict["link"]}|{e_dict["name"]}>')
         time.sleep(10)
+    scom.st.send_message(chan, 'That\'s all for now!')
     prev_emos.update(new_emojis)
 
 # Save data to path
