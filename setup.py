@@ -16,6 +16,7 @@ with open('config.yaml') as f:
 PACKAGE = package_info['REPO']['NAME']
 DESC = package_info['REPO']['DESC']
 URL = package_info['REPO']['URL']
+DEPS = package_info['REPO']['DEPS']
 here_dir = os.path.abspath(os.path.dirname(__file__))
 init_fp = os.path.join(here_dir, *[PACKAGE, '__init__.py'])
 
@@ -33,12 +34,9 @@ setup_args = {
     'description': DESC,
     'url': URL,
     'author': 'Barret Obrock',
-    'packages': find_packages(exclude=['api', 'crons', 'documentation', 'scripts', 'tests']),
-    'dependency_links': [
-        'https://github.com/barretobrock/slacktools/tarball/master#egg=slacktools',
-        'https://github.com/barretobrock/kavalkilu/tarball/master#egg=kavalkilu'
-    ],
-    'install_requires': reqs_list
+    'packages': find_packages(exclude=['api', 'crons', 'development', 'documentation', 'scripts', 'tests']),
+    'dependency_links': DEPS,
+    'install_requires': reqs_list,
 }
 
 setup(**setup_args)
