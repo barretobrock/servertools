@@ -7,7 +7,7 @@ import pandas as pd
 from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 
 
-logg = Log('speedtest')
+logg = Log('speedtest', log_to_db=True)
 influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 # Prep speedtest by getting nearby servers
 logg.debug('Instantiating speedtest object.')

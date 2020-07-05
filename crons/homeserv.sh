@@ -12,11 +12,11 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 ## MYSQL
 #30 6 * * *             $PY3    $HOME/$SCRIPTS/grafana/grafana.py
 # SYS DATA COLLECTION
-*/2 * * * *             $PY3    $HOME/$SCRIPTS/net/machine-connected.py -lvl debug
-0 */3 * * *             $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py -lvl debug
+*/2 * * * *             $PY3    $HOME/$SCRIPTS/net/machine-connected.py
+0 */3 * * *             $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py
 ## ENV DATA COLECTION
 #*/10 * * * *           $PY3    $HOME/$SCRIPTS/weather/ecobee_temps.py
-*/10 * * * *            $PY3    $HOME/$SCRIPTS/weather/local_weather.py -lvl debug
+*/10 * * * *            $PY3    $HOME/$SCRIPTS/weather/local_weather.py
 ## HOME AUTOMATION
 */5 03-22 * * *         $PY3    $HOME/$SCRIPTS/camera/amcrest_notify_zone.py -lvl debug
 5 23 * * *              $PY3    $HOME/$SCRIPTS/camera/amcrest_nighttime.py -lvl debug

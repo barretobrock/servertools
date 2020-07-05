@@ -6,7 +6,7 @@ from servertools import OpenWRT, SlackComm
 from kavalkilu import Hosts, Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 
 
-logg = Log('machine-conn')
+logg = Log('machine-conn', log_to_db=True)
 h = Hosts()
 ow = OpenWRT()
 

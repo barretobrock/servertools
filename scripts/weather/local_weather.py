@@ -4,7 +4,7 @@ from servertools import OpenWeather, OWMLocation
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('local', log_dir='weather')
+log = Log('local', log_dir='weather', log_to_db=True)
 influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 
 current = OpenWeather(OWMLocation.ATX).current_weather()

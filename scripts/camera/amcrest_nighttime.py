@@ -7,7 +7,7 @@ from kavalkilu import Log, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('cam_night')
+log = Log('cam_night', log_to_db=True)
 hosts = Hosts()
 # Get only cameras without numbers in the name
 cam_info_list = hosts.get_hosts_and_ips(r'^ac-(ga|el)')

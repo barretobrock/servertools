@@ -6,7 +6,7 @@ from kavalkilu import Log
 from servertools import SlackWeatherNotification, NWSForecast, NWSForecastZone
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('frost_warn', log_dir='weather')
+log = Log('frost_warn', log_dir='weather', log_to_db=True)
 
 now = datetime.now()
 weather = NWSForecast(NWSForecastZone.ATX)

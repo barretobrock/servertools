@@ -9,7 +9,7 @@ from slacktools import SlackTools
 from kavalkilu import Keys, Log
 
 
-logg = Log('memeraker')
+logg = Log('memeraker', log_to_db=True)
 vcreds = Keys().get_key('viktor_creds')
 st = SlackTools(**vcreds)
 user_me = 'UM35HE6R5'

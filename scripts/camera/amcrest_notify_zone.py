@@ -7,7 +7,7 @@ from kavalkilu import Log, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('cam_active')
+log = Log('cam_active', log_to_db=True)
 ow = OpenWRT()
 hosts = Hosts()
 # Get only cameras without numbers in the name
