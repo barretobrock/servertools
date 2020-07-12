@@ -34,7 +34,7 @@ class SlackWeatherNotification:
 
     def _notify_channel(self, alert_blocks: List[dict]):
         """Wrapper function to send alert to notification channel"""
-        self.sComm.st.send_message(self.sComm.notify_channel, '', blocks=alert_blocks)
+        self.sComm.st.send_message(self.sComm.ilma_kanal, '', blocks=alert_blocks)
 
     def severe_weather_alert(self, alert_df: pd.DataFrame):
         """Formats a severe weather notification for Slack & sends it"""

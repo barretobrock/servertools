@@ -6,13 +6,20 @@ from kavalkilu import Keys
 
 
 class SlackComm:
-    def __init__(self):
-        vcreds = Keys().get_key('viktor_creds')
-        self.st = SlackTools(**vcreds)
+    def __init__(self, bot: str = 'sasha'):
+        creds = Keys().get_key(f'{bot.upper()}_SLACK_KEYS')
+        self.st = SlackTools(creds)
         self.bkb = BlockKitBuilder()
-        self.alert_channel = 'alerts'
-        self.notify_channel = 'notifications'
-        self.wifi_channel = 'wifi-pinger-dinger'
-        self.log_channel = 'logs'
-        self.user_me = 'UM35HE6R5'
-        self.user_marelle = 'UM3E3G72S'
+        if bot == 'sasha':
+            self.hoiatuste_kanal = 'hoiatused'
+            self.ilma_kanal = 'ilm'
+            self.kodu_kanal = 'kodu'
+            self.kaamerate_kanal = 'kaamerad'
+            self.meemide_kanal = 'meemid'
+            self.test_kanal = 'test'
+            self.koduv6rgu_kanal = 'koduvõrk'
+            self.user_me = 'U015WMFQ0DV'
+            self.user_marelle = 'U016N5RJZ9C'
+        elif bot == 'viktor':
+            self.user_me = 'UM35HE6R5'
+            self.user_marelle = 'UM3E3G72S'
