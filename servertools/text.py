@@ -145,6 +145,14 @@ class XPathExtractor:
         """Extracts all the URLs in a particular attribute field from a list of elements"""
         return [elem.get(from_attr) for elem in elem_list if elem.get(from_attr) is not None]
 
+    @staticmethod
+    def xpath_with_regex(obj: _Element, xpath: str) -> Union[_Element, List[_Element]]:
+        """Leverages xpath with regex
+        Example:
+            >>> xpath_with_regex('//div[re:match(@class, "w?ord.*")]/h1')
+        """
+        return obj.xpath(xpath, namespaces={"re": "http://exslt.org/regular-expressions"})
+
 
 class TextCleaner:
     def __init__(self):
