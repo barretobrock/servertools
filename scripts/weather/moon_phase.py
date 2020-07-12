@@ -27,6 +27,6 @@ for phase, dt_tuple in mi.next_four_phases():
 if full_dt is not None:
     if (full_dt - now_local).days < 2:
         # Announce it in the channel
-        scom.st.send_message(scom.notify_channel, f'Full moon coming up! {full_dt:%F %T} :full_moon:')
+        scom.st.send_message(scom.ilma_kanal, f'Täiskuu tuleb varsti! {full_dt:%F %T} :full_moon:')
 
 logg.close()

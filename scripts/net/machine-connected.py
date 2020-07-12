@@ -21,12 +21,12 @@ for ip_dict in ips:
         if ip_changed_state == 'CONNECTED':
             # IP recently connected
             logg.debug(f'Device at {ip} recently re-connected. Notifying channel.')
-            sc.st.send_message(sc.wifi_channel,
+            sc.st.send_message(sc.koduv6rgu_kanal,
                                f'<@{sc.user_marelle}> Mehe ühik on taas koduvõrgus!:peanuts:')
         elif ip_changed_state == 'DISCONNECTED':
             # IP recently disconnected
             logg.debug(f'Device at {ip} recently disconnected. Notifying channel.')
-            sc.st.send_message(sc.wifi_channel,
+            sc.st.send_message(sc.koduv6rgu_kanal,
                                f'Mehe ühik on koduvõrgust läinud :sadcowblob:')
 
 
@@ -63,7 +63,7 @@ if len(unknown_ips) > 0:
             bkb.make_block_divider(),
             bkb.make_block_section(msg_chunk)
         ]
-        sc.st.send_message(sc.wifi_channel, message='', blocks=blocks)
+        sc.st.send_message(sc.koduv6rgu_kanal, message='', blocks=blocks)
 
 # This basically just replaces the file of saved ips that are currently connected to the router
 logg.debug('Saving current connection states.')

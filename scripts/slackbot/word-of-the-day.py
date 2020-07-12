@@ -2,20 +2,26 @@ from servertools import XPathExtractor, SlackComm
 from kavalkilu import Log
 
 
-logg = Log('emoji-scraper', log_to_db=True)
+logg = Log('wotd', log_to_db=True)
 scom = SlackComm()
 
 wotd_url = 'https://www.dictionary.com/e/word-of-the-day/'
-tree = XPathExtractor(wotd_url).tree
+extractor = XPathExtractor(wotd_url)
+tree = extractor.tree
 # Get the most recent WOTD
-wotd = tree.findall('//div[@class="wotd-items"]/div[@class="wotd-item-wrapper"]')[0]
+wotd = tree.xpath('//div[contains(@class, "wotd-items")]/div')[0]
 
-
-word = wotd.find('.//div[@class="wotd-item-headword__word"]/h1').text
-pronunc = ''.join(wotd.find('.//div[@class="wotd-item-headword__pronunciation"]').itertext()).strip()
+word = extractor.xpath_with_regex(wotd, './/div[re:match(@class, "w?otd-item-headword__word")]/h1')
+if len(word) > 0:
+    word = word[0].text
+else:
+    raise ValueError('Unable to find primary section for WOTD')
+pronunc = ''.join(extractor.xpath_with_regex(
+    wotd, './/div[re:match(@class, "w?otd-item-headword__pronunciation")]')[0].itertext()).strip()
 
 # Break down part of speech & definition
-pos_block = wotd.findall('.//div[@class="wotd-item-headword__pos"]')[0].getchildren()
+pos_block = extractor.xpath_with_regex(
+    wotd, './/div[re:match(@class, "w?otd-item-headword__pos")]/p')
 pos = ''.join(pos_block[0].itertext()).strip()
 definition = ''.join(pos_block[1].itertext()).strip()
 
@@ -43,6 +49,6 @@ blocks = [
     bkb.make_block_section(f'*Example Usage*\n\n{example_txt}_Try using it in an email today!_')
 ]
 
-scom.st.send_message('wotd', message='', blocks=blocks)
+scom.st.send_message('word-of-the-day', message='Word of the day!', blocks=blocks)
 
 logg.close()
