@@ -358,7 +358,7 @@ class OpenWeather:
         dew_pt = datapoint.get_dewpoint() if datapoint.get_dewpoint() is not None \
             else dew_point(temperatures['temp-avg'], hum).c
         pt_dict = {
-            'date': pd.to_datetime(datapoint.get_reference_time('iso')).tz_convert(self.tz).strftime('%F'),
+            'date': pd.to_datetime(datapoint.get_reference_time('iso')).tz_convert(self.tz).strftime('%F %T'),
             'summary': datapoint.get_detailed_status(),
             'precip-intensity': datapoint.get_rain().get('3h', 0),
             'dewpoint': round(dew_pt, 2),
