@@ -337,10 +337,20 @@ class OpenWeather:
         cur_df = self._process_current_weather_data(cur)
         return cur_df
 
-    def three_hour_summary(self) -> pd.DataFrame:
+    def three_hour_forecast(self) -> pd.DataFrame:
         """3h summary for the next 5 days"""
         data = self.owm.three_hours_forecast(self.location).get_forecast()
         return self._process_3h_fc_data(data)
+
+    def hourly_forecast(self) -> pd.DataFrame:
+        """hourly summary (just three hours with gaps filled in) for the next 5 days"""
+        data = self.owm.three_hours_forecast(self.location).get_forecast()
+        data = self._process_3h_fc_data(data)
+        rng = pd.date_range(
+            pd.to_datetime(data.iloc[0, 0]), pd.to_datetime(data.iloc[-1, 0]), freq='1H')
+        time_df = pd.DataFrame({'date': [x.strftime('%F %T') for x in rng.tolist()]})
+        data = time_df.merge(data, on='date', how='left').fillna(method='ffill')
+        return data
 
     def daily_summary(self) -> pd.DataFrame:
         """daily forecast for the next 5 days"""
