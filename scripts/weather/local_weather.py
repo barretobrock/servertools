@@ -1,4 +1,4 @@
-"""Collect weather data from DarkSky"""
+"""Collect current weather data"""
 from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 from servertools import OpenWeather, OWMLocation
 
