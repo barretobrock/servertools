@@ -4,7 +4,7 @@ import time
 from random import random, randint, uniform
 from phue import Bridge
 from typing import Union, Tuple, List
-from .hosts import ServerHosts
+from kavalkilu import Hosts
 
 
 class HueBridge(Bridge):
@@ -17,9 +17,9 @@ class HueBridge(Bridge):
         """
         # Set path to bridge ip
 
-        h = ServerHosts()
+        h = Hosts()
         if bridge_ip is None:
-            bridge_ip = h.get_ip('ot-huehub')
+            bridge_ip = h.get_ip_from_host('ot-huehub')
         super().__init__(bridge_ip)
         # Bridge button may need to be pressed the first time this is used
         self.connect()
@@ -67,6 +67,8 @@ class HueBulb:
             self.turn_off()
         else:
             self.turn_on()
+            # Make sure they're at the default brightness
+            self.brightness(100)
 
     def get_status(self) -> bool:
         """Determine if light is on/off"""
