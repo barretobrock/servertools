@@ -4,7 +4,7 @@ import re
 import os
 import tempfile
 from moviepy.editor import VideoFileClip, concatenate_videoclips
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
 from typing import Optional, List
@@ -177,18 +177,21 @@ class Amcrest:
 
         return '_'.join(final).replace('.', ':')
 
-    def get_gif_for_range(self, start_dt: dt, end_dt: dt) -> str:
+    def get_gif_for_range(self, start_dt: dt, end_dt: dt, buffer_s: int = 30, resize_perc: float = 0.5,
+                          speed_x: int = 6) -> str:
         """For a given range, retrieves the video (mp4) and converts to gif.
         Returns the path to the saved gif"""
         # TODO: test that a range sub the 5min interval retrieves a single mp4 file
         temp_dir = tempfile.gettempdir()
-        # Step 1: Pull the files associated with the timerange provided
+        start_dt = start_dt - timedelta(seconds=buffer_s)
+        end_dt = end_dt + timedelta(seconds=buffer_s)
+        # Pull the files associated with the timerange provided
         dl_files = []
         for text in self.camera.find_files(start_dt, end_dt):
             for line in text.split('\r\n'):
                 key, value = list(line.split('=', 1) + [None])[:2]
                 if key.endswith('.FilePath'):
-                    if key.endswith('.mp4'):
+                    if value.endswith('.mp4'):
                         new_filename = f'{self.extract_timestamp(value)}.mp4'
                         fpath = os.path.join(temp_dir, new_filename)
                         dl_files.append(fpath)
@@ -201,9 +204,13 @@ class Amcrest:
             # 1. get seconds from clip start to motion start
             # 2. get seconds from clip end to motion end
             # 3. add as subclip((secs_from_start: float), (secs_from_end: float))
-            secs_from_start = 15.35
-            secs_from_end = None
-            clip = (VideoFileClip(dl_file).subclip(secs_from_start, secs_from_end).resize(0.25).speedx(10))
+            clip_ymd = re.search(r'\d{4}-\d{2}-\d{2}', dl_file).group()
+            clip_st, clip_end = [dt.strptime(f'{clip_ymd} {x[0]}', '%Y-%m-%d %H:%M:%S')
+                                 for x in re.findall(r'((\d+:){2}\d{2})', dl_file)]
+            # Determine if we need to crop the clip at all
+            secs_from_start = (start_dt - clip_st).seconds if start_dt > clip_st else 0
+            secs_from_end = -1 * (clip_end - end_dt).seconds if clip_end > end_dt else None
+            clip = (VideoFileClip(dl_file).subclip(secs_from_start, secs_from_end).resize(resize_perc).speedx(speed_x))
             # Append to our clips
             clips.append(clip)
         # Concatenate all the clips
