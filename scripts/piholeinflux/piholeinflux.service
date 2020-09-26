@@ -1,0 +1,16 @@
+[Unit]
+Description=Pi-hole-Influx - Send Pi-hole statistics to InfluxDB for visualization
+Documentation=https://github.com/janw/pi-hole-influx
+After=network-online.target
+
+[Service]
+User=bobrock
+Group=bobrock
+Type=idle
+Environment=PYTHONUNBUFFERED=true
+ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/scripts/piholeinflux/piholeinflux.py
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

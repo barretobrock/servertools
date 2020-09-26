@@ -111,6 +111,8 @@ class Amcrest:
         prev_event_end = None
         event_start = None
         for event in events:
+            if len(event.keys()) < 2:
+                continue
             if prev_event_end is not None:
                 diff = (prev_event_end - event['start']).seconds
             else:
