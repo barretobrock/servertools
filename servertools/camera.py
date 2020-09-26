@@ -155,11 +155,17 @@ class Amcrest:
                     # Replace begin with start
                     event_type = event_type.replace('begin', 'start')
                     if event_type in item_dict.keys():
+                        # Event was already in item dict, so must be...
                         # New event
                         events.append(item_dict)
                         item_dict = {}
                     # Add to dict
                     item_dict[event_type] = dt.strptime(event_time, '%Y-%m-%d %H:%M:%S')
+                    if all([x in item_dict.keys() for x in ['start', 'end']]):
+                        # Full dict
+                        events.append(item_dict)
+                        item_dict = {}
+
         return self._consolidate_events(events)
 
     @staticmethod
