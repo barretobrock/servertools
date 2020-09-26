@@ -13,7 +13,12 @@ cam_ip = Hosts().get_ip_from_host('ac-v2lis')
 cam = Amcrest(cam_ip)
 
 motion_logs = cam.get_motion_log(start_dt, end_dt)
-# Reverse order of list
+logg.info(f'Found {len(motion_logs)} motion events from the previous night.')
+
+if len(motion_logs) > 0:
+    sc.st.send_message('kaamerad', f'{len(motion_logs)} incoming motion events from last night '
+                                   f'({start_dt:%T} to {end_dt:%T})!')
+# Reverse order of list to earliest first
 motion_logs.reverse()
 for mlog in motion_logs:
     gif_path = cam.get_gif_for_range(mlog['start'], mlog['end'])
