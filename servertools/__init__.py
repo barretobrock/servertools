@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from .camera import Amcrest
+from .camera import Amcrest, VidTools
 from .database import GSheetReader, SQLLiteLocal
 from .domoticz import Domoticz
 from .ecobee import EcoBee

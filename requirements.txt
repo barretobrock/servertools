@@ -3,8 +3,7 @@ beautifulsoup4==4.9.1
 Flask>=1.1.2
 flask_jsonpify==1.5.0
 grafana-api==1.0.2
-imageio==2.9.0
-imageio-ffmpeg==0.4.2
+imutils==0.5.3
 kavalkilu>=1.1.22
 lxml==4.5.1
 markovify==0.8.2
@@ -12,6 +11,7 @@ meteocalc==1.1.0
 moviepy==1.0.3
 nltk==3.5
 numpy==1.18.4
+opencv-python==4.4.0.44
 openwrt-luci-rpc==1.1.3
 pandas==1.0.3
 Pillow==7.1.2

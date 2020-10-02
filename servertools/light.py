@@ -68,7 +68,7 @@ class HueBulb:
         else:
             self.turn_on()
             # Make sure they're at the default brightness
-            self.brightness(100)
+            self.brightness(self.FULL_BRIGHTNESS)
 
     def get_status(self) -> bool:
         """Determine if light is on/off"""
