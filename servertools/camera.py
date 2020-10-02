@@ -23,10 +23,14 @@ class VidTools:
     temp_dir = tempfile.gettempdir()
     temp_mp4_in_fpath = os.path.join(temp_dir, 'tempin.mp4')
     temp_mp4_out_fpath = os.path.join(temp_dir, 'tempout.mp4')
+    fps = 20
     resize_perc = 0.5
     speed_x = 6
 
-    def __init__(self, vid_w: int = 640, vid_h: int = 360, resize_perc: float = None, speed_x: int = None):
+    def __init__(self, vid_w: int = 640, vid_h: int = 360, fps: int = None, resize_perc: float = None,
+                 speed_x: int = None):
+        if fps is not None:
+            self.fps = fps
         if resize_perc is not None:
             self.resize_perc = resize_perc
         if speed_x is not None:
@@ -66,7 +70,7 @@ class VidTools:
         final = concatenate_videoclips(clips)
         final.write_videofile(self.temp_mp4_in_fpath)
 
-    def draw_on_motion(self, min_area: int = 500, threshold: int = 25) -> bool:
+    def draw_on_motion(self, min_area: int = 500, min_frames: int = 10, threshold: int = 25) -> bool:
         """Draws rectangles around motion items and re-saves the file
             If True is returned, the file has some motion highlighted in it, otherwise it doesn't have any
 
@@ -122,15 +126,15 @@ class VidTools:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 rects += 1
             if rects > 0:
-                # If a contour was drawn, write the frame to file
+                # If a contour was drawn, save the frame
                 frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
         vs.release()
-        if len(frames) > 0:
+        if len(frames) > min_frames:
             # Rewrite the output file with moviepy
             #   Otherwise Slack won't be able to play the mp4 due to h264 codec issues
-            vclip = ImageSequenceClip(frames, fps=20)
-            vclip.write_videofile(self.temp_mp4_out_fpath, codec='libx264', fps=20)
+            vclip = ImageSequenceClip(frames, fps=self.fps)
+            vclip.write_videofile(self.temp_mp4_out_fpath, codec='libx264', fps=self.fps)
             return True
         return False
 
@@ -327,27 +331,6 @@ class Amcrest:
                         with open(fpath, 'wb') as f:
                             f.write(self.camera.download_file(value))
         return dl_files
-
-    def get_gif_for_range(self, start_dt: dt, end_dt: dt, buffer_s: int = 30, resize_perc: float = 0.5,
-                          speed_x: int = 6) -> str:
-        """For a given range, retrieves the video (mp4) and converts to gif.
-        Returns the path to the saved gif"""
-        # TODO: test that a range sub the 5min interval retrieves a single mp4 file
-        temp_dir = tempfile.gettempdir()
-        start_dt = start_dt - timedelta(seconds=buffer_s)
-        end_dt = end_dt + timedelta(seconds=buffer_s)
-        # Pull the files associated with the timerange provided
-        dl_files = self.download_files_from_range(start_dt, end_dt, temp_dir)
-
-        # Now go through the downloaded files and combine them
-        clips = self.make_clip_from_filename(start_dt, end_dt, dl_files, resize_perc, speed_x)
-        # Concatenate all the clips
-        all_clips = concatenate_videoclips(clips)
-        # Write to gif
-        outfile = f'motion_gif_{start_dt:%F_%T}_to_{end_dt:%F_%T}.gif'
-        outpath = os.path.join(temp_dir, outfile)
-        all_clips.write_gif(outpath, fps=2, fuzz=10)
-        return outpath
 
     def get_video_stream(self, channel: int = 0, subtype: int = 1) -> str:
         """

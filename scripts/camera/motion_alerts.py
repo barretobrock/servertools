@@ -13,17 +13,15 @@ end_dt = dt.now().replace(minute=0, second=0)
 
 cam_ip = Hosts().get_ip_from_host('ac-v2lis')
 cam = Amcrest(cam_ip)
-vt = VidTools(640, 360, resize_perc=0.5, speed_x=6)
+vt = VidTools(640, 360, resize_perc=0.5, speed_x=5)
 
 temp_dir = tempfile.gettempdir()
-temp_mp4_fpath = os.path.join(temp_dir, 'temp.mp4')
-
 motion_logs = cam.get_motion_log(start_dt, end_dt)
 logg.info(f'Found {len(motion_logs)} motion events from the previous night.')
 
 if len(motion_logs) > 0:
     sc.st.send_message('kaamerad', f'{len(motion_logs)} incoming motion events from '
-                                   f'({start_dt:%T} to {end_dt:%T})!')
+                                   f'({start_dt:%H:%M} to {end_dt:%H:%M})!')
 # Reverse order of list to earliest first
 motion_logs.reverse()
 buffer = 10  # give the clips an x second buffer before and after motion was detected
