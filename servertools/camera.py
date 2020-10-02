@@ -135,29 +135,6 @@ class VidTools:
         return False
 
 
-for log in motion_logs:
-    start = log['start'] - timedelta(seconds=10)
-    end = log['end'] + timedelta(seconds=10)
-    dl_files = self.cam.download_files_from_range(start, end, self.temp_dir)
-    # clips = self.cam.make_clip_from_filename(start, end, dl_files)
-    # clip = concatenate_videoclips(clips)
-    # Write concatenated clip to temp file
-    # clip.write_videofile(self.temp_inmp4_fpath)
-    # vs = cv2.VideoCapture(self.temp_inmp4_fpath)
-    # vid_w = 640
-    # vid_h = 360
-    # vs.set(3, vid_w)
-    # vs.set(4, vid_h)
-    # Might need to do the following for this to work
-    #   sudo apt install ffmpeg x264 libx264-dev
-    # initialize first frame in video stream
-
-    # TODO: If tot_frames > 0, send signal that file is worth uploading, otherwise don't
-    #   Maybe some files have false positives
-    # gif_path = self.cam.get_gif_for_range(log['start'], log['end'])
-    # self.sc.st.upload_file('kaamerad', gif_path, os.path.split(gif_path)[1])
-
-
 class Amcrest:
     """Amcrest camera-related methods"""
     camera_types = {
@@ -350,8 +327,6 @@ class Amcrest:
                         with open(fpath, 'wb') as f:
                             f.write(self.camera.download_file(value))
         return dl_files
-
-
 
     def get_gif_for_range(self, start_dt: dt, end_dt: dt, buffer_s: int = 30, resize_perc: float = 0.5,
                           speed_x: int = 6) -> str:
