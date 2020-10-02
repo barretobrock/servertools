@@ -1,4 +1,3 @@
-import os
 from datetime import datetime as dt, timedelta
 import tempfile
 from kavalkilu import Hosts, Log
