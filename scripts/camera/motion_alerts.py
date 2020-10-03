@@ -19,8 +19,6 @@ temp_dir = tempfile.gettempdir()
 motion_logs = cam.get_motion_log(start_dt, end_dt)
 logg.info(f'Found {len(motion_logs)} motion events from the previous night.')
 
-if len(motion_logs) > 0:
-    logg.debug(f'Found {len(motion_logs)} motion events.')
 # Reverse order of list to earliest first
 motion_logs.reverse()
 buffer = 10  # give the clips an x second buffer before and after motion was detected
@@ -28,8 +26,7 @@ files = []
 for mlog in motion_logs:
     start = mlog['start'] - timedelta(seconds=10)
     end = mlog['end'] + timedelta(seconds=10)
-    logg.info(f'Found motion timerange from {start:%a}: {start:%T} to {end:%T}')
-    logg.debug('Downloading files...')
+    logg.info(f'Found motion timerange from {start:%a}: {start:%T} to {end:%T}. Downloading...')
     dl_files = cam.download_files_from_range(start, end, temp_dir)
     logg.debug(f'Found {len(dl_files)} files.')
     # Clip & combine the video files, save to temp file
@@ -39,6 +36,7 @@ for mlog in motion_logs:
     logg.debug(f'Detecting motion in downloaded video file...')
     upload, fpath = vt.draw_on_motion(fpath, min_area=800, min_frames=10)
     if upload:
+        logg.debug('File is significant... Adding to list.')
         # We have some motion to upload!
         # Add to list of filepaths to be uploaded in bulk
         files.append(fpath)
