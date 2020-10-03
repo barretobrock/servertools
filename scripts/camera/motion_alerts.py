@@ -1,5 +1,6 @@
-from datetime import datetime as dt, timedelta
+import os
 import tempfile
+from datetime import datetime as dt, timedelta
 from kavalkilu import Hosts, Log
 from servertools import SlackComm, Amcrest, VidTools
 
@@ -19,11 +20,11 @@ motion_logs = cam.get_motion_log(start_dt, end_dt)
 logg.info(f'Found {len(motion_logs)} motion events from the previous night.')
 
 if len(motion_logs) > 0:
-    sc.st.send_message('kaamerad', f'{len(motion_logs)} incoming motion events from '
-                                   f'({start_dt:%H:%M} to {end_dt:%H:%M})!')
+    logg.debug(f'Found {len(motion_logs)} motion events.')
 # Reverse order of list to earliest first
 motion_logs.reverse()
 buffer = 10  # give the clips an x second buffer before and after motion was detected
+files = []
 for mlog in motion_logs:
     start = mlog['start'] - timedelta(seconds=10)
     end = mlog['end'] + timedelta(seconds=10)
@@ -33,14 +34,21 @@ for mlog in motion_logs:
     logg.debug(f'Found {len(dl_files)} files.')
     # Clip & combine the video files, save to temp file
     logg.debug('Clipping video files and combining them...')
-    vt.make_clip_from_filenames(start, end, dl_files, trim_files=True)
+    fpath = vt.make_clip_from_filenames(start, end, dl_files, trim_files=True)
     # Draw rectangles over the motion zones
     logg.debug(f'Detecting motion in downloaded video file...')
-    upload = vt.draw_on_motion(min_area=600)
+    upload, fpath = vt.draw_on_motion(fpath, min_area=800, min_frames=10)
     if upload:
         # We have some motion to upload!
-        final_fname = f'motion_{start:%F_%T}_to_{end:%F_%T}.mp4'
-        logg.info(f'Uploading vid to channel: {final_fname}')
-        sc.st.upload_file('kaamerad', vt.temp_mp4_out_fpath, final_fname)
+        # Add to list of filepaths to be uploaded in bulk
+        files.append(fpath)
+
+if len(files) > 0:
+    logg.info(f'Uploading {len(files)} vids to channel')
+    msg = f'*`{len(files)}`* incoming videos (from *`{len(motion_logs)}`* events) ' \
+          f'from `{start_dt:%H:%M}` to `{end_dt:%H:%M}`'
+    sc.st.send_message('kaamerad', msg)
+    for file in files:
+        sc.st.upload_file('kaamerad', file, os.path.split(file)[1])
 
 logg.close()

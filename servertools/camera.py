@@ -21,8 +21,8 @@ class GIFTools:
 class VidTools:
     """Class for general video editing"""
     temp_dir = tempfile.gettempdir()
-    temp_mp4_in_fpath = os.path.join(temp_dir, 'tempin.mp4')
-    temp_mp4_out_fpath = os.path.join(temp_dir, 'tempout.mp4')
+    # temp_mp4_in_fpath = os.path.join(temp_dir, 'tempin.mp4')
+    # temp_mp4_out_fpath = os.path.join(temp_dir, 'tempout.mp4')
     fps = 20
     resize_perc = 0.5
     speed_x = 6
@@ -55,7 +55,7 @@ class VidTools:
         return secs_from_start, secs_from_end
 
     def make_clip_from_filenames(self, start_dt: dt, end_dt: dt, file_list: List[str],
-                                 trim_files: bool = True):
+                                 trim_files: bool = True) -> str:
         """Takes in a list of file paths, determines the cropping necessary
         based on the timerange in the path and downloads the video clip to a temp filepath"""
         clips = []
@@ -68,20 +68,25 @@ class VidTools:
             # Append to our clips
             clips.append(clip)
         final = concatenate_videoclips(clips)
-        final.write_videofile(self.temp_mp4_in_fpath)
+        fpath = os.path.join(self.temp_dir, f'motion_{start_dt:%F_%T}_to_{end_dt:%F_%T}.mp4')
+        final.write_videofile(fpath)
+        return fpath
 
-    def draw_on_motion(self, min_area: int = 500, min_frames: int = 10, threshold: int = 25) -> bool:
+    def draw_on_motion(self, fpath: str, min_area: int = 500, min_frames: int = 10,
+                       threshold: int = 25) -> Tuple[bool, Optional[str]]:
         """Draws rectangles around motion items and re-saves the file
             If True is returned, the file has some motion highlighted in it, otherwise it doesn't have any
 
         Args:
-              min_area: the minimum contour area (pixels)
-              threshold: min threshold (out of 255). used when calculating img differences
+            fpath: the path to the mp4 file
+            min_area: the minimum contour area (pixels)
+            min_frames: the threshold of frames the final file must have. Fewer than this will return False
+            threshold: min threshold (out of 255). used when calculating img differences
 
         NB! threshhold probably shouldn't exceed 254
         """
         # Read in file
-        vs = cv2.VideoCapture(self.temp_mp4_in_fpath)
+        vs = cv2.VideoCapture(fpath)
         vs.set(3, self.vid_w)
         vs.set(4, self.vid_w)
         fframe = None
@@ -134,9 +139,9 @@ class VidTools:
             # Rewrite the output file with moviepy
             #   Otherwise Slack won't be able to play the mp4 due to h264 codec issues
             vclip = ImageSequenceClip(frames, fps=self.fps)
-            vclip.write_videofile(self.temp_mp4_out_fpath, codec='libx264', fps=self.fps)
-            return True
-        return False
+            vclip.write_videofile(fpath, codec='libx264', fps=self.fps)
+            return True, fpath
+        return False, None
 
 
 class Amcrest:
