@@ -7,7 +7,7 @@ from servertools import SlackComm, Amcrest, VidTools
 
 logg = Log('motion_alerts', log_to_db=True)
 sc = SlackComm()
-start_dt = (dt.now() - timedelta(minutes=30)).replace(second=0)
+start_dt = (dt.now() - timedelta(minutes=10)).replace(second=0)
 end_dt = dt.now().replace(second=0)
 
 
