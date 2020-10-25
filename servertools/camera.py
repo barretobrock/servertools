@@ -68,7 +68,7 @@ class VidTools:
             # Append to our clips
             clips.append(clip)
         final = concatenate_videoclips(clips)
-        fpath = os.path.join(self.temp_dir, f'motion_{start_dt:%F_%T}_to_{end_dt:%F_%T}.mp4')
+        fpath = os.path.join(self.temp_dir, f'motion_{start_dt:%T}_to_{end_dt:%T}.mp4')
         final.write_videofile(fpath)
         return fpath
 
