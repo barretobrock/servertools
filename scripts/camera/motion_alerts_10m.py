@@ -35,8 +35,6 @@ if upload:
 
 if len(files) > 0:
     logg.info(f'Uploading {len(files)} vids to channel')
-    msg = f'*`{len(files)}`* incoming videos from `{start_dt:%H:%M}` to `{end_dt:%H:%M}`'
-    sc.st.send_message('kaamerad', msg)
     for file in files:
         sc.st.upload_file('kaamerad', file, os.path.split(file)[1])
 
