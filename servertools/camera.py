@@ -6,7 +6,7 @@ import cv2
 import imutils
 import tempfile
 from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
 from typing import Optional, List, Dict, Tuple
@@ -83,13 +83,14 @@ class VidTools:
             min_frames: the threshold of frames the final file must have. Fewer than this will return False
             threshold: min threshold (out of 255). used when calculating img differences
 
-        NB! threshhold probably shouldn't exceed 254
+        NB! threshold probably shouldn't exceed 254
         """
         # Read in file
         vs = cv2.VideoCapture(fpath)
         vs.set(3, self.vid_w)
-        vs.set(4, self.vid_w)
+        vs.set(4, self.vid_h)
         fframe = None
+        nth_frame = 0
         frames = []
         while True:
             # Grab the current frame
@@ -100,8 +101,7 @@ class VidTools:
             # Resize the frame, convert to grayscale, blur it
             try:
                 frame = imutils.resize(frame, width=self.vid_w)
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                gray = cv2.GaussianBlur(gray, (21, 21), 0)
+                gray = self._grayscale_frame(frame)
             except AttributeError:
                 continue
 
@@ -109,39 +109,58 @@ class VidTools:
             if fframe is None:
                 fframe = gray
                 continue
-
-            # Compute absolute difference between current frame and first frame
-            fdelta = cv2.absdiff(fframe, gray)
-            thresh = cv2.threshold(fdelta, threshold, 255, cv2.THRESH_BINARY)[1]
-            # Dilate the thresholded image to fill in holes, then find contours
-            #   on thresholded image
-            thresh = cv2.dilate(thresh, None, iterations=2)
-            cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            cnts = imutils.grab_contours(cnts)
-
-            # Loop over contours
-            rects = 0
-            for cnt in cnts:
-                # Ignore contour if it's too small
-                if cv2.contourArea(cnt) < min_area:
-                    continue
-
-                # Otherwise compute the bounding box for the contour & draw it on the frame
-                (x, y, w, h) = cv2.boundingRect(cnt)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                rects += 1
+            rects, contours, cframe = self._detect_contours(fframe, frame, min_area, threshold)
             if rects > 0:
-                # If a contour was drawn, save the frame
                 frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            if nth_frame % 100 == 0:
+                print(f'Frame {nth_frame} reached.')
+            nth_frame += 1
 
         vs.release()
         if len(frames) > min_frames:
             # Rewrite the output file with moviepy
             #   Otherwise Slack won't be able to play the mp4 due to h264 codec issues
-            vclip = ImageSequenceClip(frames, fps=self.fps)
-            vclip.write_videofile(fpath, codec='libx264', fps=self.fps)
-            return True, fpath
+            return True, self.write_frames(frames, fpath)
         return False, None
+
+    def write_frames(self, frames: List['numpy.ndarray'], filepath: str) -> str:
+        """Writes the frames to a given .mp4 filepath (h264 codec)"""
+        vclip = ImageSequenceClip(frames, fps=self.fps)
+        vclip.write_videofile(filepath, codec='libx264', fps=self.fps)
+        return filepath
+
+    @staticmethod
+    def _grayscale_frame(frame: 'numpy.ndarray', blur_lvl: int = 21) -> 'numpy.ndarray':
+        """Converts a frame to grayscale"""
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (blur_lvl, blur_lvl), 0)
+        return gray
+
+    def _detect_contours(self, first_frame: 'numpy.ndarray', cur_frame: 'numpy.ndarray', min_area: int = 500,
+                         threshold: int = 25) -> Tuple[int, List['numpy.ndarray'], 'numpy.ndarray']:
+        """Methodology used to detect contours in image differences"""
+        # Compute absolute difference between current frame and first frame
+        gray = self._grayscale_frame(cur_frame)
+        fdelta = cv2.absdiff(first_frame, gray)
+        thresh = cv2.threshold(fdelta, threshold, 255, cv2.THRESH_BINARY)[1]
+        # Dilate the thresholded image to fill in holes, then find contours
+        #   on thresholded image
+        thresh = cv2.dilate(thresh, None, iterations=2)
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+
+        # Loop over contours
+        rects = 0
+        for cnt in cnts:
+            # Ignore contour if it's too small
+            if cv2.contourArea(cnt) < min_area:
+                continue
+
+            # Otherwise compute the bounding box for the contour & draw it on the frame
+            (x, y, w, h) = cv2.boundingRect(cnt)
+            cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            rects += 1
+        return rects, cnts, cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
 
 
 class Amcrest:
