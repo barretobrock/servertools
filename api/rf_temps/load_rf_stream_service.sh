@@ -2,7 +2,7 @@
 # LOADS SERVICE INTO SYSTEMD
 
 SERVICEFILE=rf_stream.service
-SRC_FPATH=~/extras/pitools/scripts/rf_temps/${SERVICEFILE}
+SRC_FPATH=~/extras/servertools/scripts/rf_temps/${SERVICEFILE}
 LIB_FPATH=/lib/systemd/system/${SERVICEFILE}
 
 # Copy the service file to lib
