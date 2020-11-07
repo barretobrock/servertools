@@ -22,7 +22,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 #*/5 03-22 * * *         $PY3    $HOME/$SCRIPTS/camera/amcrest_notify_zone.py -lvl debug
 #5 23 * * *              $PY3    $HOME/$SCRIPTS/camera/amcrest_nighttime.py -lvl debug
 #02 0-9/3 * * *         $PY3    $HOME/$SCRIPTS/camera/motion_alerts.py -lvl debug
-*/10 * * * *            $PY3    $HOME/$SCRIPTS/camera/motion_alerts_10m.py -lvl debug
+#*/10 * * * *            $PY3    $HOME/$SCRIPTS/camera/motion_alerts_10m.py -lvl debug
 ## SLACK NOTIFICATION/SIGNALING
 20 19 * 10-12,1-3 *     $PY3    $HOME/$SCRIPTS/weather/frost_warning.py # Run Oct - March only
 17 16 * * 0-5           $PY3    $HOME/$SCRIPTS/weather/daily_weather_and_sig_temp_warn.py
