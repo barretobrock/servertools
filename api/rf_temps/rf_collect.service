@@ -1,0 +1,14 @@
+
+[Unit]
+Description=RTL 433 Data Collection Service
+After=multi-user.target
+
+[Service]
+User=bobrock
+Group=bobrock
+Type=idle
+ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/api/rf_temps/rf_collect.py -lvl info
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

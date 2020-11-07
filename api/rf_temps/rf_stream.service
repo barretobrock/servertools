@@ -1,0 +1,14 @@
+
+[Unit]
+Description=RTL 433 Data Streaming Service
+After=multi-user.target
+
+[Service]
+User=bobrock
+Group=bobrock
+Type=idle
+ExecStart=/usr/local/bin/rtl_433 -F syslog:192.168.1.5:1433
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
