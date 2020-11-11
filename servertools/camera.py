@@ -2,14 +2,15 @@ import amcrest
 import requests
 import re
 import os
+import numpy as np
 import cv2
 import imutils
 import tempfile
 from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Union
 from kavalkilu import Keys
 
 
@@ -92,6 +93,7 @@ class VidTools:
         fframe = None
         nth_frame = 0
         frames = []
+        prev_contours = []
         while True:
             # Grab the current frame
             ret, frame = vs.read()
@@ -109,7 +111,10 @@ class VidTools:
             if fframe is None:
                 fframe = gray
                 continue
-            rects, contours, cframe = self._detect_contours(fframe, frame, min_area, threshold)
+            rects, contours, cframe = self._detect_contours(
+                fframe, frame, min_area, threshold, contour_lim=6, prev_contours=prev_contours
+            )
+            prev_contours = contours
             if rects > 0:
                 frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             if nth_frame % 100 == 0:
@@ -123,21 +128,22 @@ class VidTools:
             return True, self.write_frames(frames, fpath)
         return False, None
 
-    def write_frames(self, frames: List['numpy.ndarray'], filepath: str) -> str:
+    def write_frames(self, frames: List[np.ndarray], filepath: str) -> str:
         """Writes the frames to a given .mp4 filepath (h264 codec)"""
         vclip = ImageSequenceClip(frames, fps=self.fps)
         vclip.write_videofile(filepath, codec='libx264', fps=self.fps)
         return filepath
 
     @staticmethod
-    def _grayscale_frame(frame: 'numpy.ndarray', blur_lvl: int = 21) -> 'numpy.ndarray':
+    def _grayscale_frame(frame: np.ndarray, blur_lvl: int = 21) -> np.ndarray:
         """Converts a frame to grayscale"""
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (blur_lvl, blur_lvl), 0)
         return gray
 
-    def _detect_contours(self, first_frame: 'numpy.ndarray', cur_frame: 'numpy.ndarray', min_area: int = 500,
-                         threshold: int = 25) -> Tuple[int, List['numpy.ndarray'], 'numpy.ndarray']:
+    def _detect_contours(self, first_frame: np.ndarray, cur_frame: np.ndarray, min_area: int = 500,
+                         threshold: int = 25, contour_lim: int = 10,
+                         prev_contours: List[np.ndarray] = None) -> Tuple[int, List[np.ndarray], np.ndarray]:
         """Methodology used to detect contours in image differences"""
         # Compute absolute difference between current frame and first frame
         gray = self._grayscale_frame(cur_frame)
@@ -148,6 +154,8 @@ class VidTools:
         thresh = cv2.dilate(thresh, None, iterations=2)
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
+        # Capture unique contours
+        unique_cnts = [] + prev_contours
 
         # Loop over contours
         rects = 0
@@ -155,12 +163,16 @@ class VidTools:
             # Ignore contour if it's too small
             if cv2.contourArea(cnt) < min_area:
                 continue
-
-            # Otherwise compute the bounding box for the contour & draw it on the frame
-            (x, y, w, h) = cv2.boundingRect(cnt)
-            cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            rects += 1
-        return rects, cnts, cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
+            # Check for unique contours
+            if any([cv2.matchShapes(cnt, ucnt, 1, 0.0) > contour_lim for ucnt in unique_cnts]):
+                # Unique contour - add to group
+                # Otherwise compute the bounding box for the contour & draw it on the frame
+                (x, y, w, h) = cv2.boundingRect(cnt)
+                print(f'Bounding areas of {x} + {w} x {y} + {h} (xwyh)...')
+                cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                unique_cnts.append(cnt)
+                rects += 1
+        return rects, unique_cnts, cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
 
 
 class Amcrest:
@@ -257,73 +269,130 @@ class Amcrest:
             self.set_ptz_flag(armed)
 
     @staticmethod
-    def _consolidate_events(events: List[Dict[str, dt]], limit_s: int = 60) -> Optional[List[Dict[str, dt]]]:
-        """Takes in a list of motion events and consolidates them if they're within range of each other"""
+    def _consolidate_events(events: List[Dict[str, Union[str, dt]]], limit_s: int = 60,
+                            default_s: int = 60) -> Optional[List[Dict[str, dt]]]:
+        """Takes in a list of motion events and consolidates them if they're within range of each other
+        Args:
+            limit_s: limit in seconds, after which two events are actually considered separate
+            default_s: if no start/end time provided, the end with be this amount of seconds
+                added to the missing start/end time
+        """
+        # First step is to pair event starts and ends
+        new_event = {}
         new_events = []
-        prev_event_end = None
-        event_start = None
-        if len(events) == 0:
-            return []
-        event = None
         for event in events:
-            if len(event.keys()) < 2:
-                continue
-            if prev_event_end is not None:
-                diff = (prev_event_end - event['start']).seconds
-            else:
-                diff = 0
-                prev_event_end = event['end']
-            if diff < limit_s:
-                # Combine current start and previous end
-                event_start = event['start']
-            else:
-                # diff exceeds limit; split
-                new_events.append({'start': event_start, 'end': prev_event_end})
-                event_start = event['start']
-                prev_event_end = event['end']
+            if all([x in new_event.keys() for x in ['start', 'end']]):
+                # All keys have been added. Append to the list
+                new_events.append(new_event)
+                new_event = {}
+            if len(new_event.keys()) == 0:
+                # New dict
+                if event['type'] == 'Event End':
+                    # Event end before begin; this likely means a motion event started
+                    #   before our time range. Use default lookbehind to estimate the event start
+                    new_event['start'] = event['time'] - timedelta(seconds=default_s)
+            start_or_end = 'start' if 'Begin' in event['type'] else 'end'
+            # Populate common parts of event info
+            new_event.update({
+                start_or_end: event['time'],
+                'region': event['detail.region-name'].lower(),
+                'channel': int(event['detail.channel-no.']),
+                'event-type': event['detail.event-type'].lower()
+            })
+        if len(new_event) != 0:
+            # Make sure we also have an end to this last event
+            if 'end' not in new_event.keys():
+                new_event['end'] = new_event['start'] + timedelta(seconds=default_s)
+            new_events.append(new_event)
 
-        if prev_event_end is None:
-            # Started over without saving the last event
-            new_events.append(event)
-        else:
-            new_events.append({'start': event_start, 'end': prev_event_end})
-        return new_events
+        # Now combine individual events if they occur within {limit_s} to each other
+        combi_event = {'event-list': []}
+        combi_events = []
+        prev_event_end = None
+        if len(new_events) == 0:
+            return []
+        for event in new_events:
+            # Calculate the diff
+            if prev_event_end is not None:
+                diff = (event['start'] - prev_event_end).seconds
+            else:
+                # First event
+                diff = 0
+            # Compare diff; determine whether to combine
+            if diff <= limit_s:
+                # Combine current start and previous end
+                combi_event['event-list'].append(event)
+            else:
+                # diff exceeds limit; split into another combi event
+                combi_event.update({
+                    'start': min([x['start'] for x in combi_event['event-list']]),
+                    'end': max([x['end'] for x in combi_event['event-list']])
+                })
+                combi_events.append(combi_event)
+                # Reset dict
+                combi_event = {
+                    'event-list': [event]
+                }
+            prev_event_end = event['end']
+
+        if len(combi_event['event-list']) > 0:
+            # Info remaining in combi_event
+            combi_event.update({
+                'start': min([x['start'] for x in combi_event['event-list']]),
+                'end': max([x['end'] for x in combi_event['event-list']])
+            })
+            combi_events.append(combi_event)
+
+        return combi_events
 
     def get_motion_log(self, start_dt: dt, end_dt: dt) -> List[dict]:
         """Returns log of motion detection events between two timestamps"""
-        # Get log for given range
-        logresp = next(self.camera.log_find(start_dt, end_dt))
-        # Split by return char combo
-        logs = logresp.split('\r\n')
-        # Sift through logs, build out events
+        # Get logs for given range
+        #   Amcrest does a kind of tokenization that allows us to grab
+        #   logs in batches of 100. Tokens seem to be just sequential ints
+        #   and are not page numbers! Once the end of the log is reached,
+        #   the 'found' variable will be 0.
+        raw_token = self.camera.log_find_start(start_dt, end_dt)
+        token = re.search(r'(?!token=)\d+', raw_token).group(0)
+
         events = []
         item_dict = {}
-        event_time = None
-        for logstr in logs:
-            item_match = re.search(r'(?<=items\[)\d+', logstr)
-            if item_match is not None:
-                # Found an item
-                if 'Time=' in logstr:
-                    # Capture event time
-                    event_time = re.search(r'(?<=Time=)[\d\s\-:]+', logstr).group()
-                elif '.Type=Event' in logstr:
-                    # Capture whether this was an event start or end
-                    event_type = re.search(r'(?<=Type=Event\s)\w+', logstr).group().lower()
-                    # Replace begin with start
-                    event_type = event_type.replace('begin', 'start')
-                    if event_type in item_dict.keys():
-                        # Event was already in item dict, so must be...
-                        # New event
+        cur_item_no = 0
+        while True:
+            log_batch = self.camera.log_find_next(token, count=100)
+            raw_logs = log_batch.split('\r\n')
+            batch_size = int(re.search(r'(?!found=)\d+', log_batch).group(0))
+            if batch_size == 0:
+                break
+            # Sift through logs, build out events
+            for logstr in raw_logs:
+                # Make sure we're getting an item and not any other info
+                if re.search(r'(?<=items\[)\d+', logstr):
+                    # Get item number
+                    item_no = int(re.search(r'(?<=items)\[(\d+)]', logstr).group(1))
+                    # Get & clean the name of the item
+                    item_name = re.search(r'(?<=]\.).*(?==)', logstr).group(0).lower().replace(' ', '-')
+                    item_name = re.sub(r'\[\d+]', '', item_name)
+                    # The value after the item name
+                    item_value = re.search(r'(?<==).*', logstr).group(0)
+                    if item_name == 'time':
+                        # Convert to datetime
+                        item_value = dt.strptime(item_value, '%Y-%m-%d %H:%M:%S')
+                    if item_no != cur_item_no:
+                        # New item - move item dict to events and initiate new one
                         events.append(item_dict)
-                        item_dict = {}
-                    # Add to dict
-                    item_dict[event_type] = dt.strptime(event_time, '%Y-%m-%d %H:%M:%S')
-                    if all([x in item_dict.keys() for x in ['start', 'end']]):
-                        # Full dict
-                        events.append(item_dict)
-                        item_dict = {}
+                        item_dict = {item_name: item_value}
+                        cur_item_no = item_no
+                    else:
+                        # Same item - add to existing dict
+                        item_dict[item_name] = item_value
 
-        return self._consolidate_events(events)
+        # Of the events that are motion related
+        mevents = [x for x in events if x.get('detail.event-type', '') == 'Motion Detect']
+        # Reverse the order of events so they're chronological
+        mevents.reverse()
+
+        return self._consolidate_events(mevents)
 
     @staticmethod
     def extract_timestamp(fpath: str) -> str:
