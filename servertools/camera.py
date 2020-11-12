@@ -165,8 +165,7 @@ class VidTools:
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
         # Capture unique contours
-        if unique_only:
-            unique_cnts = [] + prev_contours if prev_contours is not None else []
+        unique_cnts = prev_contours.copy() if prev_contours is not None else []
 
         # Loop over contours
         rects = 0
