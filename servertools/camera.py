@@ -73,6 +73,17 @@ class VidTools:
         final.write_videofile(fpath)
         return fpath
 
+    def concat_files(self, filepath_list: List[str]) -> str:
+        """Concatenates a list of mp4 filepaths into one & saves it"""
+        clips = []
+        for filepath in filepath_list:
+            clip = VideoFileClip(filepath)
+            clips.append(clip)
+        final = concatenate_videoclips(clips, method='compose')
+        final_fpath = os.path.join(self.temp_dir, 'motion_concatenated_file.mp4')
+        final.write_videofile(final_fpath)
+        return final_fpath
+
     def draw_on_motion(self, fpath: str, min_area: int = 500, min_frames: int = 10,
                        threshold: int = 25) -> Tuple[bool, Optional[str]]:
         """Draws rectangles around motion items and re-saves the file

@@ -59,8 +59,9 @@ for mlog in motion_logs:
 
 if len(files) > 0:
     logg.info(f'Uploading {len(files)} vids to channel')
-    for file in files:
-        sc.st.upload_file('kaamerad', file, os.path.split(file)[1])
+    msg = f'{len(files)} clips out of {len(motion_logs)} motion events detected from {start_dt:%T} to {end_dt:%T}'
+    file = vt.concat_files(files)
+    sc.st.upload_file('kaamerad', file, msg)
 else:
     logg.info('No significant motion detected during this time interval')
 
