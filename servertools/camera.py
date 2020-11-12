@@ -112,9 +112,8 @@ class VidTools:
                 fframe = gray
                 continue
             rects, contours, cframe = self._detect_contours(
-                fframe, frame, min_area, threshold, contour_lim=6, prev_contours=prev_contours
+                fframe, frame, min_area, threshold, unique_only=False
             )
-            prev_contours = contours
             if rects > 0:
                 frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             if nth_frame % 100 == 0:
@@ -141,10 +140,21 @@ class VidTools:
         gray = cv2.GaussianBlur(gray, (blur_lvl, blur_lvl), 0)
         return gray
 
-    def _detect_contours(self, first_frame: np.ndarray, cur_frame: np.ndarray, min_area: int = 500,
-                         threshold: int = 25, contour_lim: int = 10,
-                         prev_contours: List[np.ndarray] = None) -> Tuple[int, List[np.ndarray], np.ndarray]:
-        """Methodology used to detect contours in image differences"""
+    def _detect_contours(self, first_frame: np.ndarray, cur_frame: np.ndarray,
+                         min_area: int = 500, threshold: int = 25, contour_lim: int = 10,
+                         prev_contours: List[np.ndarray] = None, unique_only: bool = False) -> \
+            Tuple[int, List[np.ndarray], np.ndarray]:
+        """Methodology used to detect contours in image differences
+
+        Args:
+            first_frame: the frame to use as base comparison
+            cur_frame: the frame to compare for changes
+            min_area: the minimum (pixel?) area of changes to be flagged as a significant change
+            threshold: seems like the gradient of the change (in grayscale?) to identify changes?
+            contour_lim: integer-wise means of detecting changes in contours (larger => more different)
+            prev_contours: List of previous contours (used for detecting unique contours
+            unique_only: if True, will perform unique contour analysis
+        """
         # Compute absolute difference between current frame and first frame
         gray = self._grayscale_frame(cur_frame)
         fdelta = cv2.absdiff(first_frame, gray)
@@ -155,7 +165,8 @@ class VidTools:
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
         # Capture unique contours
-        unique_cnts = [] + prev_contours
+        if unique_only:
+            unique_cnts = [] + prev_contours if prev_contours is not None else []
 
         # Loop over contours
         rects = 0
@@ -163,15 +174,21 @@ class VidTools:
             # Ignore contour if it's too small
             if cv2.contourArea(cnt) < min_area:
                 continue
-            # Check for unique contours
-            if any([cv2.matchShapes(cnt, ucnt, 1, 0.0) > contour_lim for ucnt in unique_cnts]):
-                # Unique contour - add to group
-                # Otherwise compute the bounding box for the contour & draw it on the frame
+            if unique_only:
+                # Check for unique contours
+                if any([cv2.matchShapes(cnt, ucnt, 1, 0.0) > contour_lim for ucnt in unique_cnts]):
+                    # Unique contour - add to group
+                    # Otherwise compute the bounding box for the contour & draw it on the frame
+                    (x, y, w, h) = cv2.boundingRect(cnt)
+                    cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    unique_cnts.append(cnt)
+                    rects += 1
+            else:
+                # Just pick up any contours
                 (x, y, w, h) = cv2.boundingRect(cnt)
-                print(f'Bounding areas of {x} + {w} x {y} + {h} (xwyh)...')
                 cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                unique_cnts.append(cnt)
                 rects += 1
+
         return rects, unique_cnts, cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
 
 
