@@ -36,10 +36,10 @@ for mlog in motion_logs:
         for dl_dict in already_downloaded:
             if dl_dict['start'] < start < dl_dict['end']:
                 # Top-end of range already covered
-                clip_st = (dl_dict['end'] + timedelta(minutes=1))
+                clip_st = (dl_dict['end'] + timedelta(seconds=1))
             if dl_dict['start'] < end < dl_dict['end']:
                 # Bottom-end of range already covered
-                clip_end = (dl_dict['start'] - timedelta(minutes=1))
+                clip_end = (dl_dict['start'] - timedelta(seconds=1))
         logg.debug(f'Downloading file(s) covering {clip_st:%T} to {clip_end:%T}..')
         already_downloaded += cam.download_files_from_range(clip_st, clip_end, temp_dir)
 
@@ -61,5 +61,7 @@ if len(files) > 0:
     logg.info(f'Uploading {len(files)} vids to channel')
     for file in files:
         sc.st.upload_file('kaamerad', file, os.path.split(file)[1])
+else:
+    logg.info('No significant motion detected during this time interval')
 
 logg.close()
