@@ -410,20 +410,29 @@ class Amcrest:
         return '_'.join(final).replace('.', ':')
 
     def download_files_from_range(self, start_dt: dt, end_dt: dt,
-                                  temp_dir: str) -> List[str]:
+                                  temp_dir: str) -> List[dict]:
         """Downloads mp4 files from a set datetime range"""
-        dl_files = []
+        file_dicts = []
         for text in self.camera.find_files(start_dt, end_dt):
             for line in text.split('\r\n'):
                 key, value = list(line.split('=', 1) + [None])[:2]
                 if key.endswith('.FilePath'):
                     if value.endswith('.mp4'):
-                        new_filename = f'{self.extract_timestamp(value)}.mp4'
+                        ts = self.extract_timestamp(value)
+                        dt_objs = []
+                        date_dt = dt.strptime(ts.split('_')[0], '%Y-%m-%d')
+                        for t in ts.split('_')[1].split('-'):
+                            dt_objs.append(dt.combine(date_dt, dt.strptime(t, '%H:%M:%S').time()))
+                        new_filename = f'{ts}.mp4'
                         fpath = os.path.join(temp_dir, new_filename)
-                        dl_files.append(fpath)
+                        file_dicts.append({
+                            'start': dt_objs[0],
+                            'end': dt_objs[1],
+                            'path': fpath
+                        })
                         with open(fpath, 'wb') as f:
                             f.write(self.camera.download_file(value))
-        return dl_files
+        return file_dicts
 
     def get_video_stream(self, channel: int = 0, subtype: int = 1) -> str:
         """
