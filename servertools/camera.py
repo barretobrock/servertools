@@ -68,7 +68,7 @@ class VidTools:
             clip = (clip.resize(self.resize_perc).speedx(self.speed_x))
             # Append to our clips
             clips.append(clip)
-        final = concatenate_videoclips(clips)
+        final = concatenate_videoclips(clips, method='compose')
         fpath = os.path.join(self.temp_dir, f'motion_{start_dt:%T}_to_{end_dt:%T}.mp4')
         final.write_videofile(fpath)
         return fpath
