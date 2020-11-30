@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. If not, will arm the cameras"""
-import paho.mqtt.publish as publish
 from servertools import Amcrest, OpenWRT
-from kavalkilu import Log, Hosts
+from kavalkilu import LogWithInflux, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('cam_active', log_to_db=True)
+log = LogWithInflux('cam_active')
 ow = OpenWRT()
 hosts = Hosts()
 # Get only cameras without numbers in the name
@@ -30,6 +29,5 @@ for cam_dict in cam_info_list:
     cam = Amcrest(cam_dict['ip'])
     if cam.camera_type != 'doorbell':
         cam.arm_camera(arm_cameras)
-        publish.single(f'sensors/cameras/{cam.name}/status', arm_status, hostname='homeserv.local')
 
 log.close()

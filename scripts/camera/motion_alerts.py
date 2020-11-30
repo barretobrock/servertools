@@ -1,18 +1,35 @@
-import os
 import tempfile
 from datetime import datetime as dt, timedelta
-from kavalkilu import Hosts, Log
+from kavalkilu import Hosts, LogWithInflux, ArgParse
 from servertools import SlackComm, Amcrest, VidTools
 
 
-logg = Log('motion_alerts', log_to_db=True)
+logg = LogWithInflux('motion_alerts')
 sc = SlackComm()
-INTERVAL_MINS = 60
+
+args = [
+    {
+        'names': ['-c', '--camera'],
+        'other': {
+            'action': 'store',
+            'default': 'ac-v2lis'
+        }
+    }, {
+        'names': ['-i', '--interval'],
+        'other': {
+            'action': 'store',
+            'default': '60'
+        }
+    }
+]
+ap = ArgParse(args, parse_all=False)
+CAMERA = ap.arg_dict.get('camera')
+INTERVAL_MINS = int(ap.arg_dict.get('interval'))
 start_dt = (dt.now() - timedelta(minutes=INTERVAL_MINS)).replace(second=0, microsecond=0)
 end_dt = (start_dt + timedelta(minutes=INTERVAL_MINS))
 
 
-cam_ip = Hosts().get_ip_from_host('ac-v2lis')
+cam_ip = Hosts().get_ip_from_host(CAMERA)
 cam = Amcrest(cam_ip)
 vt = VidTools(640, 360, resize_perc=0.5, speed_x=5)
 
@@ -47,7 +64,8 @@ for mlog in motion_logs:
                                  if x['start'] < start < x['end'] or x['start'] < end < x['end']])))
     # Clip & combine the video files, save to temp file
     logg.debug('Clipping video files and combining them...')
-    fpath = vt.make_clip_from_filenames(start, end, filepaths, trim_files=True)
+    fpath = vt.make_clip_from_filenames(start, end, filepaths, trim_files=True,
+                                        prefix=f'{CAMERA}_motion')
     # Draw rectangles over the motion zones
     logg.debug(f'Detecting motion in downloaded video file...')
     upload, fpath = vt.draw_on_motion(fpath, min_area=500, min_frames=2, threshold=20)
