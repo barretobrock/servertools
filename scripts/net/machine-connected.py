@@ -3,10 +3,10 @@
 import pandas as pd
 from slacktools import BlockKitBuilder
 from servertools import OpenWRT, SlackComm
-from kavalkilu import Hosts, Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import Hosts, LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 
 
-logg = Log('machine-conn', log_to_db=True)
+logg = LogWithInflux('machine-conn')
 h = Hosts()
 ow = OpenWRT()
 

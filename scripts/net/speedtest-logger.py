@@ -4,10 +4,10 @@
 from speedtest import Speedtest
 from datetime import datetime as dt
 import pandas as pd
-from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 
 
-logg = Log('speedtest', log_to_db=True)
+logg = LogWithInflux('speedtest')
 influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 # Prep speedtest by getting nearby servers
 logg.debug('Instantiating speedtest object.')
