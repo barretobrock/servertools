@@ -10,10 +10,11 @@ from json import JSONDecodeError
 import socket
 from datetime import datetime
 import pandas as pd
-from kavalkilu import InfluxDBLocal, InfluxDBNames, InfluxTblNames, Log, GracefulKiller, Hosts
+from kavalkilu import InfluxDBLocal, InfluxDBNames, InfluxTblNames, LogWithInflux, \
+    GracefulKiller, Hosts
 
 
-logg = Log('rf_temp')
+logg = LogWithInflux('rf_temp')
 UDP_IP = Hosts().get_ip_from_host('tinyserv')
 UDP_PORT = 1433
 
