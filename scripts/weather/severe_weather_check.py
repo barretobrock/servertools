@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from kavalkilu import Log
+from kavalkilu import LogWithInflux
 from servertools import NWSAlert, NWSAlertZone, SlackWeatherNotification
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('severe_weather', log_dir='weather', log_to_db=True)
+log = LogWithInflux('severe_weather', log_dir='weather')
 
 nwa = NWSAlert(NWSAlertZone.ATX)
 slacknotify = SlackWeatherNotification()

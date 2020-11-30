@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """Method to collect temperature and other useful data from ecobee"""
 from datetime import datetime, timedelta
-from kavalkilu import Log
+from kavalkilu import LogWithInflux
 from servertools import EcoBee
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('ecobee_temp', log_dir='weather', log_to_db=True)
+log = LogWithInflux('ecobee_temp', log_dir='weather')
 eco = EcoBee()
 
 temp_now = datetime.now()

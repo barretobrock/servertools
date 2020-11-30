@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 import pandas as pd
-from kavalkilu import Log
+from kavalkilu import LogWithInflux
 from servertools import NWSForecast, NWSForecastZone, SlackWeatherNotification
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('significant_change', log_dir='weather', log_to_db=True)
+log = LogWithInflux('significant_change', log_dir='weather')
 
 swno = SlackWeatherNotification()
 

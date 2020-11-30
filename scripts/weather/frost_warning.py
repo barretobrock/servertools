@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 import pandas as pd
-from kavalkilu import Log
+from kavalkilu import LogWithInflux
 from servertools import SlackWeatherNotification, NWSForecast, NWSForecastZone
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('frost_warn', log_dir='weather', log_to_db=True)
+log = LogWithInflux('frost_warn', log_dir='weather')
 
 now = datetime.now()
 weather = NWSForecast(NWSForecastZone.ATX)

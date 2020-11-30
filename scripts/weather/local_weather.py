@@ -1,10 +1,10 @@
 """Collect current weather data"""
-from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 from servertools import OpenWeather, OWMLocation
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('local', log_dir='weather', log_to_db=True)
+log = LogWithInflux('local', log_dir='weather')
 influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 
 current = OpenWeather(OWMLocation.ATX).current_weather()

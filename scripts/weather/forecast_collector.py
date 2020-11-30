@@ -1,12 +1,12 @@
 """Collect forecast data"""
 from datetime import datetime, timedelta
-from kavalkilu import Log, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
 from servertools import OpenWeather, OWMLocation, NWSForecast, NWSForecastZone, \
     YrNoWeather, YRNOLocation
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('forecast', log_dir='weather', log_to_db=True)
+log = LogWithInflux('forecast', log_dir='weather')
 influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
 # Number of hours we're looking forward
 period_h = 24

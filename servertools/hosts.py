@@ -14,7 +14,7 @@ class ServerHosts:
     def __init__(self):
         # Definitions of the prefixes stored in the hostnames
         self.prefix_dict = {
-            'homeserv': 'server',
+            'tinyserv': 'server',
             'lt': 'laptop',
             'pi': 'raspberry pi',
             'ac': 'camera',

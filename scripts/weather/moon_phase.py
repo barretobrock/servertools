@@ -1,10 +1,10 @@
 from datetime import datetime
 from pylunar import MoonInfo
-from kavalkilu import DateTools, Log
+from kavalkilu import DateTools, LogWithInflux
 from servertools import SlackComm
 
 
-logg = Log('moon_phase', log_dir='weather', log_to_db=True)
+logg = LogWithInflux('moon_phase', log_dir='weather')
 # lat/long in degrees, mins & secs
 loc = ((30, 16, 2), (-97, 44, 35))
 mi = MoonInfo(*loc)

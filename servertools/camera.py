@@ -56,7 +56,7 @@ class VidTools:
         return secs_from_start, secs_from_end
 
     def make_clip_from_filenames(self, start_dt: dt, end_dt: dt, file_list: List[str],
-                                 trim_files: bool = True) -> str:
+                                 trim_files: bool = True, prefix: str = 'motion') -> str:
         """Takes in a list of file paths, determines the cropping necessary
         based on the timerange in the path and downloads the video clip to a temp filepath"""
         clips = []
@@ -69,7 +69,7 @@ class VidTools:
             # Append to our clips
             clips.append(clip)
         final = concatenate_videoclips(clips, method='compose')
-        fpath = os.path.join(self.temp_dir, f'motion_{start_dt:%T}_to_{end_dt:%T}.mp4')
+        fpath = os.path.join(self.temp_dir, f'{prefix}_{start_dt:%T}_to_{end_dt:%T}.mp4')
         final.write_videofile(fpath)
         return fpath
 

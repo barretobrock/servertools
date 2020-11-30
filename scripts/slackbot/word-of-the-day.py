@@ -1,8 +1,8 @@
 from servertools import XPathExtractor, SlackComm
-from kavalkilu import Log
+from kavalkilu import LogWithInflux
 
 
-logg = Log('wotd', log_to_db=True)
+logg = LogWithInflux('wotd')
 scom = SlackComm()
 
 wotd_url = 'https://www.dictionary.com/e/word-of-the-day/'
