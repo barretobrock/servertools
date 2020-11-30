@@ -10,36 +10,25 @@ from json import JSONDecodeError
 import socket
 from datetime import datetime
 import pandas as pd
-from kavalkilu import InfluxDBLocal, InfluxDBNames, InfluxTblNames, Log, GracefulKiller
+from kavalkilu import InfluxDBLocal, InfluxDBNames, InfluxTblNames, Log, GracefulKiller, Hosts
 
 
 logg = Log('rf_temp')
-UDP_IP = "192.168.1.5"
+UDP_IP = Hosts().get_ip_from_host('tinyserv')
 UDP_PORT = 1433
 
 # device id to device-specific data mapping
 mappings = {
-    9459: {
-        'name': 'freezer'
-    },
-    6853: {
-        'name': 'kontor-wc'
-    },
-    210: {
-        'name': 'neighbor-porch'
-    },
-    14539: {
-        'name': 'fridge'
-    },
-    5252: {
-        'name': 'elutuba'
-    },
-    12476: {
-        'name': 'suur-wc'
-    },
-    8416: {
-        'name': 'alumine-r6du'
-    }
+    210: {'name': 'neighbor-porch'},
+    3092: {'name': 'ylemine-r6du'},
+    5252: {'name': 'elutuba'},
+    6853: {'name': 'kontor-wc'},
+    8416: {'name': 'alumine-r6du'},
+    9459: {'name': 'freezer'},
+    9533: {'name': 'kontor'},
+    10246: {'name': 'v2lisuks'},
+    12476: {'name': 'suur-wc'},
+    14539: {'name': 'fridge'},
 }
 
 # Map the names of the variables from the various sensors to what's acceptable in the db
@@ -83,7 +72,7 @@ while not killer.kill_now:
         data = json.loads(line)
         # logg.debug(f'Seeing: {data}')
     except JSONDecodeError as e:
-        logg.error_with_class(e, 'Unable to parse this object. Skipping.')
+        logg.error_from_class(e, 'Unable to parse this object. Skipping.')
         continue
 
     if "model" not in data:
