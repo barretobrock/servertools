@@ -98,7 +98,8 @@ while not killer.kill_now:
                 data_df = data_df.append(pd.DataFrame(measurements, index=[0]))
                 logg.debug('Successfully recorded object to dataframe..')
         else:
-            logg.info(f'Unknown device found: {data["model"]}: ({data["id"]})')
+            logg.info(f'Unknown device found: {data["model"]}: ({data["id"]})\n'
+                      f'{json.dumps(data, indent=2)}')
 
     if (datetime.now() - interval).total_seconds() > split_s:
         # Gone over the time limit. Try to log all the non-duplicate info to database
