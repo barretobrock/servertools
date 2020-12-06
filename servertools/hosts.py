@@ -1,4 +1,5 @@
 from typing import List
+from kavalkilu import HOME_SERVER_HOSTNAME
 
 
 class HostnameNotFoundException(Exception):
@@ -14,7 +15,7 @@ class ServerHosts:
     def __init__(self):
         # Definitions of the prefixes stored in the hostnames
         self.prefix_dict = {
-            'tinyserv': 'server',
+            HOME_SERVER_HOSTNAME: 'server',
             'lt': 'laptop',
             'pi': 'raspberry pi',
             'ac': 'camera',

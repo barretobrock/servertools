@@ -5,7 +5,7 @@ import re
 import json
 import requests
 import pandas as pd
-from typing import List, Optional, Union, Any
+from typing import List, Union, Any
 from datetime import datetime, timedelta
 from dateutil import tz
 from functools import reduce
@@ -54,7 +54,8 @@ class SlackWeatherNotification:
         blocks = [
             self.bkb.make_context_section(f'Frost/Freeze Alert <@{self.sComm.user_me}>!'),
             self.bkb.make_block_divider(),
-            self.bkb.make_block_section(f'{warning.title()} Warning: *`{lowest_temp}`*C *`{highest_wind}`*m/s')
+            self.bkb.make_block_section(
+                f'{warning.title()} Warning: `*{lowest_temp:.1f}C*` `*{highest_wind:.1f}m/s*`')
         ]
         self._notify_channel(blocks)
 

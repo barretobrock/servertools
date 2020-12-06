@@ -11,11 +11,11 @@ import socket
 from datetime import datetime
 import pandas as pd
 from kavalkilu import InfluxDBLocal, InfluxDBNames, InfluxTblNames, LogWithInflux, \
-    GracefulKiller, Hosts
+    GracefulKiller, Hosts, HOME_SERVER_HOSTNAME
 
 
 logg = LogWithInflux('rf_temp')
-UDP_IP = Hosts().get_ip_from_host('tinyserv')
+UDP_IP = Hosts().get_ip_from_host(HOME_SERVER_HOSTNAME)
 UDP_PORT = 1433
 
 # device id to device-specific data mapping
