@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 """Sends messages to Slack"""
 from slacktools import SlackTools, BlockKitBuilder
-from kavalkilu import Keys
+from kavalkilu import Keys, LogWithInflux
 
 
 class SlackComm:
-    def __init__(self, bot: str = 'sasha'):
+    def __init__(self, bot: str = 'sasha', parent_log: LogWithInflux = None):
         creds = Keys().get_key(f'{bot.upper()}_SLACK_KEYS')
-        self.st = SlackTools(creds)
+        self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
+        self.st = SlackTools(creds, parent_log=self.log)
         self.bkb = BlockKitBuilder()
         if bot == 'sasha':
             self.hoiatuste_kanal = 'hoiatused'
