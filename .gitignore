@@ -1,3 +1,5 @@
+# Maybe keep development files out?
+*_test.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

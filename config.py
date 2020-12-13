@@ -11,7 +11,7 @@ MAIN_BRANCH = 'master'      # The primary branch of the repo
 DESC = 'A package for routines performed by my home automation server.'
 # Dependencies this package has on any of my other projects.
 #   This text gets appended to the placeholder in GIT_DEP_URL below
-MY_DEPS = ['slacktools', 'kavalkilu', 'easylogger']
+MY_DEPS = ['slacktools', 'kavalkilu', 'easylogger', 'reolink-python-api']
 
 # ==============================================================================
 # These are things that probably won't need to be changed much.
