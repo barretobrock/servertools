@@ -145,6 +145,7 @@ class VidTools:
     def write_frames(self, frames: List[np.ndarray], filepath: str, audio: CompositeAudioClip) -> str:
         """Writes the frames to a given .mp4 filepath (h264 codec)"""
         vclip = ImageSequenceClip(frames, fps=self.fps)
+        audio.set_duration(vclip.duration/2)
         vclip.audio = audio
         vclip.write_videofile(filepath, codec='libx264', fps=self.fps)
         return filepath
