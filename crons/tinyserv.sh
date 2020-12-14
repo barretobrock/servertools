@@ -16,7 +16,8 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 */10 * * * *            $PY3    $HOME/$SCRIPTS/weather/local_weather.py
 0 * * * *               $PY3    $HOME/$SCRIPTS/weather/forecast_collector.py
 ## HOME AUTOMATION
-02 * * * *              $PY3    $HOME/$SCRIPTS/camera/motion_alerts.py -c ac-v2lis -lvl debug
+02 * * * *              $PY3    $HOME/$SCRIPTS/camera/reolink_motion_alerts.py -c re-v2lis -lvl debug
+15 * * * *              $PY3    $HOME/$SCRIPTS/camera/reolink_motion_alerts.py -c re-eesuks -lvl debug
 0 */2 * * *             $PY3    $HOME/$SCRIPTS/plants/mushroom-grow-toggle.py -lvl debug
 ## SLACK NOTIFICATION/SIGNALING
 20 19 * 10-12,1-3 *     $PY3    $HOME/$SCRIPTS/weather/frost_warning.py -lvl debug # Run Oct-March

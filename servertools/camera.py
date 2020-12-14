@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import imutils
 import tempfile
-from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip
+from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, CompositeAudioClip
 from datetime import datetime as dt, timedelta
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
@@ -99,6 +99,9 @@ class VidTools:
         """
         # Read in file
         vs = cv2.VideoCapture(fpath)
+        # Read in the clip as a video, extract audio
+        clip = VideoFileClip(fpath)
+        audio = CompositeAudioClip([clip.audio])
         vs.set(3, self.vid_w)
         vs.set(4, self.vid_h)
         fframe = None
@@ -125,8 +128,9 @@ class VidTools:
             rects, contours, cframe = self._detect_contours(
                 fframe, frame, min_area, threshold, unique_only=False
             )
-            if rects > 0:
-                frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            # if rects > 0:
+            #     frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             if nth_frame % 100 == 0:
                 print(f'Frame {nth_frame} reached.')
             nth_frame += 1
@@ -135,12 +139,13 @@ class VidTools:
         if len(frames) > min_frames:
             # Rewrite the output file with moviepy
             #   Otherwise Slack won't be able to play the mp4 due to h264 codec issues
-            return True, self.write_frames(frames, fpath)
+            return True, self.write_frames(frames, fpath, audio=audio)
         return False, None
 
-    def write_frames(self, frames: List[np.ndarray], filepath: str) -> str:
+    def write_frames(self, frames: List[np.ndarray], filepath: str, audio: CompositeAudioClip) -> str:
         """Writes the frames to a given .mp4 filepath (h264 codec)"""
         vclip = ImageSequenceClip(frames, fps=self.fps)
+        vclip.audio = audio
         vclip.write_videofile(filepath, codec='libx264', fps=self.fps)
         return filepath
 
@@ -190,7 +195,7 @@ class VidTools:
                     # Unique contour - add to group
                     # Otherwise compute the bounding box for the contour & draw it on the frame
                     (x, y, w, h) = cv2.boundingRect(cnt)
-                    cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
                     unique_cnts.append(cnt)
                     rects += 1
             else:

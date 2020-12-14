@@ -1,5 +1,6 @@
 amcrest==1.7.1
 beautifulsoup4==4.9.1
+easylogger
 Flask>=1.1.2
 flask_jsonpify==1.5.0
 grafana-api==1.0.2
@@ -21,6 +22,7 @@ pygsheets==2.0.3.1
 pylunar==0.6.0
 pyowm==2.10.0
 python-yr==1.4.5
+reolink_api
 requests>=2.23.0
 roku==4.1.0
 selenium==3.141.0
