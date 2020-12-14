@@ -10,11 +10,13 @@ from json import JSONDecodeError
 import socket
 from datetime import datetime
 import pandas as pd
-from kavalkilu import InfluxDBLocal, InfluxDBNames, InfluxTblNames, LogWithInflux, \
+from kavalkilu import InfluxDBLocal, InfluxDBHomeAuto, LogWithInflux, \
     GracefulKiller, Hosts, HOME_SERVER_HOSTNAME
+from servertools import HueBulb, SlackComm
 
 
 logg = LogWithInflux('rf_temp')
+sc = SlackComm()
 UDP_IP = Hosts().get_ip_from_host(HOME_SERVER_HOSTNAME)
 UDP_PORT = 1433
 
@@ -30,6 +32,11 @@ mappings = {
     10246: {'name': 'v2lisuks'},
     12476: {'name': 'suur-wc'},
     14539: {'name': 'fridge'},
+}
+# Other items that aren't sensors
+other_mappings = {
+    '0D65F165': {'name': 'gdo'},
+    1922: {'name': 'doorbell'},
 }
 
 # Map the names of the variables from the various sensors to what's acceptable in the db
@@ -54,7 +61,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 sock.bind((UDP_IP, UDP_PORT))
 
 logg.debug('Connecting to Influx..')
-influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
+influx = InfluxDBLocal(InfluxDBHomeAuto.TEMPS)
 killer = GracefulKiller()
 
 # Set up methods to periodically send processed data packets to Influx
@@ -84,7 +91,7 @@ while not killer.kill_now:
     if data is not None:
         # Begin extraction process
         if data['id'] in mappings.keys():
-            # Device is known... record data
+            # Device is known sensor... record data
             measurements = {}
             for k, v in possible_measurements.items():
                 if k in data.keys():
@@ -97,6 +104,18 @@ while not killer.kill_now:
                 })
                 data_df = data_df.append(pd.DataFrame(measurements, index=[0]))
                 logg.debug('Successfully recorded object to dataframe..')
+        elif data['id'] in other_mappings.keys():
+            # Handle signal another way
+            item = other_mappings.get(data['id']).get('name')
+            if item == 'gdo':
+                # Routines for notifying gdo was used
+                sc.st.send_message(sc.kodu_kanal, 'Someone used the garage door remote!')
+            elif item == 'doorbell':
+                # Routines for notifying doorbell was used
+                sc.st.send_message(sc.kodu_kanal, '<!here> someone\'s at the door!')
+                for lt in ['floor-lamp', 'kontor-lamp']:
+                    light = HueBulb(lt)
+                    light.blink(3, trans_time=0.3)
         else:
             logg.info(f'Unknown device found: {data["model"]}: ({data["id"]})\n'
                       f'{json.dumps(data, indent=2)}')
@@ -109,8 +128,7 @@ while not killer.kill_now:
             if col in data_df.columns:
                 data_df[col] = data_df[col].astype(float)
         logg.debug(f'Logging interval reached. Sending over {data_df.shape[0]} points to db.')
-        influx.write_df_to_table(InfluxTblNames.TEMPS, data_df, tags='location',
-                                 value_cols=['temp', 'humidity'], time_col='timestamp')
+        influx.write_df_to_table(data_df, tags='location', value_cols=['temp', 'humidity'], time_col='timestamp')
         # Reset our info
         logg.debug('Resetting interval and dataframe.')
         interval = datetime.now()
