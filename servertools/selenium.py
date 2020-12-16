@@ -9,6 +9,7 @@ from random import randint
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from kavalkilu import LogWithInflux
 
 
 class ChromeDriver(Chrome):
@@ -65,13 +66,13 @@ class BrowserAction:
     _slow_wait = [15, 30]
     _medium_wait = [5, 15]
     _fast_wait = [1, 8]
-    REST_S = 2  # Standard seconds to rest between attempts
-    STD_ATTEMPTS = 3 # Standard attempts to make before failing
+    REST_S = 2          # Standard seconds to rest between attempts
+    STD_ATTEMPTS = 3    # Standard attempts to make before failing
 
-    def __init__(self, log_obj, driver_path='/usr/bin/chromedriver',
-                 timeout=60, options=None, headless=True):
+    def __init__(self, driver_path='/usr/bin/chromedriver',
+                 timeout=60, options=None, headless=True, parent_log: 'Log' = None):
         self.driver = ChromeDriver(driver_path, timeout, options, headless)
-        self.log = log_obj(log_obj.name, child_name='browser')
+        self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         self.elem_by_xpath = self.driver.find_element_by_xpath
         self.elems_by_xpath = self.driver.find_elements_by_xpath
 
