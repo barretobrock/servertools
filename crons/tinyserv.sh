@@ -26,5 +26,8 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 17 10 * * *             $PY3    $HOME/$SCRIPTS/weather/moon_phase.py
 27 8 * * *              $PY3    $HOME/$SCRIPTS/slackbot/word-of-the-day.py -lvl debug
 
-# Vpulse Automation
+## SELENIUM-BASED
+### Apt price scraping
+05 05 * * * export DISPLAY=:0; $PY3 $HOME/$SCRIPTS/net/apt_prices.py -lvl debug
+### Vpulse Automation
 #40 03 * * * export DISPLAY=:0; $PY3 $HOME/$SENSORS/vpulse/vpulse_auto.py -lvl debug
