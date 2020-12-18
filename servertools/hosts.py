@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from kavalkilu import HOME_SERVER_HOSTNAME
 
 
@@ -19,12 +19,13 @@ class ServerHosts:
             'lt': 'laptop',
             'pi': 'raspberry pi',
             'ac': 'camera',
+            're': 'camera',
             'an': 'mobile',
             'ot': 'misc'
         }
-        self.hosts = self.read_hosts()
+        self.hosts = []
 
-    def read_hosts(self) -> List[dict]:
+    def read_hosts(self):
         """Reads in /etc/hosts, parses data"""
         with open('/etc/hosts', 'r') as f:
             hostlines = f.readlines()
@@ -42,8 +43,11 @@ class ServerHosts:
                 'name': name.strip(),
                 'machine_type': mach_type
             })
+        self.hosts = hosts
 
-        return hosts
+    def reload(self):
+        """Reloads the hosts"""
+        self.read_hosts()
 
     def get_all_names(self) -> List[str]:
         """Returns a list of all the """
@@ -65,4 +69,4 @@ class ServerHosts:
         for host in self.hosts:
             if host['name'] == hostname:
                 return host['ip']
-        raise HostnameNotFoundException(f'IP address not found for hostname {hostname}.')
+        raise IPAddressNotFoundException(f'IP address not found for hostname {hostname}.')
