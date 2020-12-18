@@ -1,16 +1,17 @@
-import amcrest
-import requests
-import re
 import os
-import numpy as np
-import cv2
-import imutils
+import re
 import tempfile
-from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, CompositeAudioClip
 from datetime import datetime as dt, timedelta
+import requests
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
 from typing import Optional, List, Dict, Tuple, Union
+import amcrest
+import numpy as np
+import cv2
+import imutils
+from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, CompositeAudioClip
+from reolink_api import Camera
 from kavalkilu import Keys
 
 
@@ -208,6 +209,21 @@ class VidTools:
         return rects, unique_cnts, cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
 
 
+class Reolink(Camera):
+    """Wrapper for Reolink's Camera class"""
+    def __init__(self, ip: str):
+        self.ip = ip
+        creds = Keys().get_key('webcam_api')
+        super().__init__(self.ip, username=creds['user'], password=creds['password'])
+
+    def snapshot(self, filepath: str) -> bool:
+        """Takes a snapshot - mirrors the similar method in Amcrest,
+        though these POE cameras seem to be more stable with regards to connectivity"""
+        img = self.get_snap()
+        img.save(filepath)
+        return True
+
+
 class Amcrest:
     """Amcrest camera-related methods"""
     camera_types = {
@@ -300,6 +316,13 @@ class Amcrest:
         self.toggle_motion(armed)
         if self.is_ptz_enabled:
             self.set_ptz_flag(armed)
+
+    def snapshot(self, filepath: str) -> bool:
+        """Takes a snapshot using the main stream (0)"""
+        res = self.camera.snapshot(0, filepath)
+        if res.status != 200:
+            return False
+        return True
 
     @staticmethod
     def _consolidate_events(events: List[Dict[str, Union[str, dt]]], limit_s: int = 60,
