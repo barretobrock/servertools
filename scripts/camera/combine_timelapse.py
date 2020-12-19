@@ -16,4 +16,4 @@ for dirpath, _, filenames in os.walk(tl_dir):
 for k, v in fnames.items():
     full_paths = sorted([os.path.join(tl_dir, *[k, x]) for x in v])
     clip = ImageSequenceClip(full_paths, fps=30)
-    clip.write_videofile(os.path.join(tl_dir, f'{k}_concat.mp4'))
+    clip.write_videofile(os.path.join(tl_dir, f'concat_{k}.mp4'))

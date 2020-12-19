@@ -7,7 +7,7 @@ from requests.exceptions import ConnectionError
 from typing import Optional, List, Dict, Union, Tuple
 import amcrest
 from reolink_api import Camera
-from kavalkilu import Keys
+from kavalkilu import Keys, LogWithInflux
 
 
 # TODO:
@@ -17,14 +17,16 @@ from kavalkilu import Keys
 
 class Reolink(Camera):
     """Wrapper for Reolink's Camera class"""
-    def __init__(self, ip: str):
+    def __init__(self, ip: str, parent_log: LogWithInflux = None):
         self.ip = ip
+        self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         creds = Keys().get_key('webcam_api')
         super().__init__(self.ip, username=creds['user'], password=creds['password'])
 
     def snapshot(self, filepath: str) -> bool:
         """Takes a snapshot - mirrors the similar method in Amcrest,
         though these POE cameras seem to be more stable with regards to connectivity"""
+        self.logg.debug('Taking snapshot...')
         img = self.get_snap()
         img.save(filepath)
         return True
@@ -44,8 +46,9 @@ class Amcrest:
         'IPC': 'ip_cam'
     }
 
-    def __init__(self, ip: str, port: int = 80):
+    def __init__(self, ip: str, port: int = 80, parent_log: LogWithInflux = None):
         self.ip = ip
+        self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         self.creds = Keys().get_key('webcam_api')
         self.base_url = f'http://{ip}/cgi-bin'
         self.base_url_with_cred = f'http://{self.creds["user"]}:{self.creds["password"]}@{ip}/cgi-bin'
@@ -132,7 +135,9 @@ class Amcrest:
 
     def snapshot(self, filepath: str) -> bool:
         """Takes a snapshot using the main stream (0)"""
+        self.logg.debug('Getting snapshot...')
         res = self.camera.snapshot(0, filepath)
+        self.logg.debug(f'Response from snapshot: {res.status}')
         if res.status != 200:
             return False
         return True
