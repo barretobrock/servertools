@@ -4,6 +4,7 @@ from kavalkilu import LogWithInflux
 
 logg = LogWithInflux('wotd')
 scom = SlackComm()
+viktor = SlackComm(bot='viktor')
 
 wotd_url = 'https://www.dictionary.com/e/word-of-the-day/'
 extractor = XPathExtractor(wotd_url)
@@ -50,5 +51,6 @@ blocks = [
 ]
 
 scom.st.send_message('word-of-the-day', message='Word of the day!', blocks=blocks)
+viktor.st.send_message('linky-guistics', message='Word of the day!', blocks=blocks)
 
 logg.close()
