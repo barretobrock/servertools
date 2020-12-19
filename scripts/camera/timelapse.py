@@ -43,6 +43,7 @@ for i in range(attempts):
             # Check if the file exists (sometimes a warning code will be sent,
             #   causing success to be False when not perfectly executed.)
             log.debug('Path for snapshot exists. Snap likely had a warning code.')
+            success = True
             break
     except Exception as err:
         # Camera on wifi can have shoddy connection.
@@ -50,7 +51,7 @@ for i in range(attempts):
         log.debug(f'Attempt failed. Waiting {wait_s}s.')
         time.sleep(wait_s)
 
-if not success:
+if success:
     log.error(f'Not successful at snapping timelapse photo for camera {CAMERA}.')
 
 log.close()
