@@ -1,10 +1,9 @@
 import os
 import tempfile
 from datetime import datetime as dt, timedelta
-from kavalkilu import Hosts, LogWithInflux, Keys
+from kavalkilu import Hosts, LogWithInflux
 from easylogger import ArgParse
-from reolink_api import Camera
-from servertools import SlackComm, VidTools
+from servertools import SlackComm, VidTools, Reolink
 
 
 logg = LogWithInflux('motion_alerts')
@@ -31,19 +30,22 @@ INTERVAL_MINS = int(ap.arg_dict.get('interval'))
 start_dt = (dt.now() - timedelta(minutes=INTERVAL_MINS)).replace(second=0, microsecond=0)
 end_dt = (start_dt + timedelta(minutes=INTERVAL_MINS))
 
-creds = Keys().get_key('webcam_api')
 cam_ip = Hosts().get_ip_from_host(CAMERA)
-cam = Camera(cam_ip, creds['user'], creds['password'])
+cam = Reolink(cam_ip)
+stream = 'sub'
+
 # Get dimensions of substream
-dims = [int(x) for x in cam.get_recording_encoding()[0]['initial']['Enc']['subStream']['size'].split('*')]
-vt = VidTools(*dims, resize_perc=0.5, speed_x=5)
+dims = cam.get_dimensions(stream)
+logg.debug(f'Video dimensions set to {dims[0]}x{dims[1]}')
+vt = VidTools(*dims, resize_perc=1, speed_x=6)
 
 temp_dir = tempfile.gettempdir()
-motion_files = cam.get_motion_files(start=start_dt, end=end_dt, streamtype='sub')
+motion_files = cam.get_motion_files(start=start_dt, end=end_dt, streamtype=stream)
 logg.info(f'Found {len(motion_files)} motion events for the range selected.')
 
 already_downloaded = []
 files = []
+durations = []
 for mlog in motion_files:
     start = mlog['start']
     end = mlog['end']
@@ -74,22 +76,27 @@ for mlog in motion_files:
         continue
     # Clip & combine the video files, save to temp file
     logg.debug('Clipping video files and combining them...')
-    fpath = vt.make_clip_from_filenames(start, end, [out_path], trim_files=False,
-                                        prefix=f'{CAMERA}_motion')
+    fpath = vt.make_clip_from_filenames(start, end, [out_path], trim_files=False, prefix=f'{CAMERA}_motion')
     # Draw rectangles over the motion zones
     logg.debug(f'Detecting motion in downloaded video file...')
-    upload, fpath = vt.draw_on_motion(fpath, min_area=500, min_frames=2, threshold=20)
+    upload, fpath, duration = vt.draw_on_motion(fpath, min_area=500, min_frames=2, threshold=20,
+                                                ref_frame_turnover=20, buffer_s=0.5)
     if upload:
         logg.debug('File is significant... Adding to list.')
         # We have some motion to upload!
         # Add to list of filepaths to be uploaded in bulk
         files.append(fpath)
+        durations.append(duration)
 
 if len(files) > 0:
     logg.info(f'Uploading {len(files)} vids to channel')
-    msg = f'{len(files)} clips out of {len(motion_files)} motion events detected from {start_dt:%T} to {end_dt:%T}'
+    mins = sum(durations) / 60
+    secs = mins % 1 * 60
+    msg = f'*`{CAMERA}`*: *`{len(files)}`* clips out of *`{len(motion_files)}`* motion events ' \
+          f'detected from `{start_dt:%H:%M}` to `{end_dt:%H:%M}`\n\t ' \
+          f'Total duration: *`{mins:.0f}m{secs:.0f}s`*'
     file = vt.concat_files(files)
-    sc.st.upload_file('kaamerad', file, msg)
+    sc.st.upload_file('kaamerad', file, filename=f'{CAMERA} events', txt=msg)
 else:
     logg.info('No significant motion detected during this time interval')
 

@@ -6,24 +6,21 @@ from typing import Optional, List, Dict, Tuple, Union
 import numpy as np
 import cv2
 import imutils
-from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, CompositeAudioClip
+from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, CompositeAudioClip, VideoClip
 
 
 class VidTools:
     """Class for general video editing"""
     temp_dir = tempfile.gettempdir()
-    fps = 20
-    resize_perc = 0.5
-    speed_x = 6
+    FPS = 20
+    RESIZE_PCT = 0.5
+    SPEEDX = 6
 
-    def __init__(self, vid_w: int = 640, vid_h: int = 360, fps: int = None, resize_perc: float = None,
-                 speed_x: int = None):
-        if fps is not None:
-            self.fps = fps
-        if resize_perc is not None:
-            self.resize_perc = resize_perc
-        if speed_x is not None:
-            self.speed_x = speed_x
+    def __init__(self, vid_w: float = 640, vid_h: float = 360, fps: float = FPS, resize_perc: float = RESIZE_PCT,
+                 speed_x: float = SPEEDX):
+        self.fps = fps
+        self.resize_perc = resize_perc
+        self.speed_x = speed_x
         self.vid_w = vid_w
         self.vid_h = vid_h
 
@@ -72,8 +69,9 @@ class VidTools:
         final.write_videofile(final_fpath)
         return final_fpath
 
-    def draw_on_motion(self, fpath: str, min_area: int = 500, min_frames: int = 10,
-                       threshold: int = 25) -> Tuple[bool, Optional[str]]:
+    def draw_on_motion(self, fpath: str, min_area: int = 500, min_frames: int = 10, threshold: int = 25,
+                       ref_frame_turnover: float = 20, buffer_s: float = 1) -> \
+            Tuple[bool, Optional[str], Optional[float]]:
         """Draws rectangles around motion items and re-saves the file
             If True is returned, the file has some motion highlighted in it, otherwise it doesn't have any
 
@@ -82,53 +80,100 @@ class VidTools:
             min_area: the minimum contour area (pixels)
             min_frames: the threshold of frames the final file must have. Fewer than this will return False
             threshold: min threshold (out of 255). used when calculating img differences
+            ref_frame_turnover: the number of consecutive frames to use a single reference frame on
+                before resetting the reference
 
         NB! threshold probably shouldn't exceed 254
         """
-        # Read in file
-        vs = cv2.VideoCapture(fpath)
-        # Read in the clip as a video, extract audio
         clip = VideoFileClip(fpath)
-        audio = CompositeAudioClip([clip.audio])
-        vs.set(3, self.vid_w)
-        vs.set(4, self.vid_h)
-        fframe = None
-        nth_frame = 0
-        frames = []
-        prev_contours = []
-        while True:
-            # Grab the current frame
-            ret, frame = vs.read()
-            if frame is None:
-                # If frame could not be grabbed, we've likely reached the end of the file
-                break
-            # Resize the frame, convert to grayscale, blur it
-            try:
-                frame = imutils.resize(frame, width=self.vid_w)
-                gray = self._grayscale_frame(frame)
-            except AttributeError:
-                continue
+        frames = [x for x in clip.iter_frames()]
+        total_frames = len(frames)
+        # Set the reference frame
+        ref_frame = clip.get_frame(0)
+        keep_frames = []    # For determining which frames have motion
+        for i, frame in enumerate(frames):
+            rects, contours, drawn_frame = self._detect_contours(
+                ref_frame, frame, min_area, threshold, unique_only=False)
+            if rects > 0:
+                # We've drawn some rectangles on this
+                keep_frames.append(i)
+                # Replace frame with drawn
+                frames[i] = drawn_frame
+            if i % ref_frame_turnover == 0:
+                print(f'Frame {i} reached.')
+                if i > 0:
+                    # Reset the reference frame
+                    ref_frame = frame
 
-            # If the first frame is None, initialize it
-            if fframe is None:
-                fframe = gray
-                continue
-            rects, contours, cframe = self._detect_contours(
-                fframe, frame, min_area, threshold, unique_only=False
+        # Now loop through the frames we've marked and process them into clips
+        last_frame = None
+        sequence_frames = []    # These are frame positions that are sequential
+        processed_clips = []
+        for f in keep_frames:
+            if last_frame is None:
+                # First instance
+                sequence_frames.append(f)
+            elif last_frame == f - 1:
+                sequence_frames.append(f)
+            else:
+                if len(sequence_frames) >= min_frames:
+                    processed_clips.append(
+                        self.develop_drawn_clip(org_clip=clip, sq_frames=sequence_frames, all_frames=frames,
+                                                buffer_s=buffer_s)
+                    )
+                sequence_frames = [f]
+            last_frame = f
+        if len(sequence_frames) > 0:
+            processed_clips.append(
+                self.develop_drawn_clip(org_clip=clip, sq_frames=sequence_frames, all_frames=frames,
+                                        buffer_s=buffer_s)
             )
-            # if rects > 0:
-            #     frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            if nth_frame % 100 == 0:
-                print(f'Frame {nth_frame} reached.')
-            nth_frame += 1
+        if len(processed_clips) > 0:
+            final_clip = concatenate_videoclips(processed_clips)
+            final_clip.write_videofile(fpath)
+            return True, fpath, final_clip.duration
+        return False, None, None
 
-        vs.release()
-        if len(frames) > min_frames:
-            # Rewrite the output file with moviepy
-            #   Otherwise Slack won't be able to play the mp4 due to h264 codec issues
-            return True, self.write_frames(frames, fpath, audio=audio)
-        return False, None
+    @staticmethod
+    def develop_drawn_clip(org_clip: VideoFileClip, sq_frames: List[float], all_frames: List[np.ndarray],
+                           buffer_s: float = 1) -> VideoClip:
+        """Calculates subclip start and end time, creates a subclip to reference.
+        Combines the drawn frames (with buffer) before transforming into a video clip
+        Adds original clip's audio to the video containing drawn frames.
+
+        Args:
+            org_clip: the original clip to leverage audio, duration data from
+            sq_frames: the sequence of frames that have motion annotations draw in them
+            all_frames: the full list of frames that we'll be slicing
+            buffer_s: the seconds of buffer to add before and after the motion area
+        """
+        duration = org_clip.duration
+        tot_frames = len(all_frames)
+        # Calculate number of frames to buffer before and after motion areas
+        buffer_fr = int(org_clip.fps / buffer_s)
+
+        # Calculate the start and end frames with the buffers
+        st_with_buffer = sq_frames[0] - buffer_fr
+        end_with_buffer = sq_frames[-1] + buffer_fr
+        start_frame_pos = st_with_buffer if st_with_buffer > 0 else 0
+        end_frame_pos = end_with_buffer if end_with_buffer < tot_frames else tot_frames - 1
+
+        # Calculate the start and end times for the start and end frames
+        start_t = ((start_frame_pos / tot_frames) * duration)
+        end_t = ((end_frame_pos / tot_frames) * duration)
+
+        # Cut the original clip to fit the buffer
+        cut_clip = org_clip.subclip(start_t, end_t)
+
+        # Generate the sequence of drawn clips
+        drawn_clip = ImageSequenceClip(all_frames[start_frame_pos:end_frame_pos], fps=org_clip.fps)
+        if drawn_clip.duration != cut_clip.duration:
+            # Cut the tail off the drawn clip to match the cut_clip.
+            drawn_clip = drawn_clip.subclip(0, end_t - start_t)
+        # Make the drawn clip a VideoClip by concatenating it with only itself. Add original clip's audio
+        drawn_clip = concatenate_videoclips([drawn_clip])
+        drawn_clip.audio = cut_clip.audio
+        return drawn_clip
 
     def write_frames(self, frames: List[np.ndarray], filepath: str, audio: CompositeAudioClip) -> str:
         """Writes the frames to a given .mp4 filepath (h264 codec)"""
@@ -145,24 +190,26 @@ class VidTools:
         gray = cv2.GaussianBlur(gray, (blur_lvl, blur_lvl), 0)
         return gray
 
-    def _detect_contours(self, first_frame: np.ndarray, cur_frame: np.ndarray,
+    def _detect_contours(self, reference_frame: np.ndarray, cur_frame: np.ndarray,
                          min_area: int = 500, threshold: int = 25, contour_lim: int = 10,
-                         prev_contours: List[np.ndarray] = None, unique_only: bool = False) -> \
-            Tuple[int, List[np.ndarray], np.ndarray]:
+                         prev_contours: List[np.ndarray] = None, unique_only: bool = False,
+                         color_correct_frame: bool = False) -> Tuple[int, List[np.ndarray], np.ndarray]:
         """Methodology used to detect contours in image differences
 
         Args:
-            first_frame: the frame to use as base comparison
+            reference_frame: the frame to use as base comparison
             cur_frame: the frame to compare for changes
             min_area: the minimum (pixel?) area of changes to be flagged as a significant change
             threshold: seems like the gradient of the change (in grayscale?) to identify changes?
             contour_lim: integer-wise means of detecting changes in contours (larger => more different)
             prev_contours: List of previous contours (used for detecting unique contours
             unique_only: if True, will perform unique contour analysis
+            color_correct_frame: if True, will try to apply a color correction to the frame before return
         """
         # Compute absolute difference between current frame and first frame
+        ref_gray = self._grayscale_frame(reference_frame)
         gray = self._grayscale_frame(cur_frame)
-        fdelta = cv2.absdiff(first_frame, gray)
+        fdelta = cv2.absdiff(ref_gray, gray)
         thresh = cv2.threshold(fdelta, threshold, 255, cv2.THRESH_BINARY)[1]
         # Dilate the thresholded image to fill in holes, then find contours
         #   on thresholded image
@@ -190,7 +237,8 @@ class VidTools:
             else:
                 # Just pick up any contours
                 (x, y, w, h) = cv2.boundingRect(cnt)
-                cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
                 rects += 1
-
-        return rects, unique_cnts, cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
+        if color_correct_frame:
+            cur_frame = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
+        return rects, unique_cnts, cur_frame

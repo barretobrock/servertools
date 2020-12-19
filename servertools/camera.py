@@ -4,11 +4,16 @@ from datetime import datetime as dt, timedelta
 import requests
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
-from typing import Optional, List, Dict, Tuple, Union
+from typing import Optional, List, Dict, Union, Tuple
 import amcrest
 from reolink_api import Camera
 from kavalkilu import Keys
 
+
+# TODO:
+#  - add get_dimensions (sub or main stream) methods to both classes
+#  - add means of drawing motion on captured frames inside each class
+#       - include an option to clip only frames that have motion with a bit of buffer
 
 class Reolink(Camera):
     """Wrapper for Reolink's Camera class"""
@@ -23,6 +28,13 @@ class Reolink(Camera):
         img = self.get_snap()
         img.save(filepath)
         return True
+
+    def get_dimensions(self, stream: str = 'sub') -> List[int]:
+        """Gets the video dimensions of the camera's stream"""
+        dims = self.get_recording_encoding()[0]['initial']['Enc'][f'{stream.lower()}Stream']['size']
+        # Split by '*', convert to int
+        dims = [int(x) for x in dims.split('*')]
+        return dims
 
 
 class Amcrest:
