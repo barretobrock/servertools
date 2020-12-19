@@ -51,7 +51,7 @@ for i in range(attempts):
         log.debug(f'Attempt failed. Waiting {wait_s}s.')
         time.sleep(wait_s)
 
-if success:
+if not success:
     log.error(f'Not successful at snapping timelapse photo for camera {CAMERA}.')
 
 log.close()
