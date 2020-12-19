@@ -3,7 +3,7 @@
 import pandas as pd
 from slacktools import BlockKitBuilder
 from servertools import OpenWRT, SlackComm
-from kavalkilu import Hosts, LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import Hosts, LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
 
 
 logg = LogWithInflux('machine-conn')
@@ -37,8 +37,8 @@ device_df = device_df.reset_index().rename(columns={'index': 'ip'})
 # Add a dummy value column
 device_df['up'] = 1
 # Push to influx
-influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
-influx.write_df_to_table(InfluxTblNames.MACHINES, device_df, ['ip', 'hostname'], 'up')
+influx = InfluxDBLocal(InfluxDBHomeAuto.MACHINES)
+influx.write_df_to_table(device_df, ['ip', 'hostname'], 'up')
 influx.close()
 
 # Unknown IP scan

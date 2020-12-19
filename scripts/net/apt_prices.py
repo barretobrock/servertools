@@ -4,7 +4,7 @@ from servertools import BrowserAction
 from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBTracker
 
 
-logg = LogWithInflux('apt-prices', log_to_file=False)
+logg = LogWithInflux('apt-prices', log_to_file=True)
 influx = InfluxDBLocal(InfluxDBTracker.APT_PRICES)
 ba = BrowserAction(headless=True, parent_log=logg)
 url = 'https://www.maac.com/available-apartments/?propertyId=611831&Bedroom=2%20Bed'

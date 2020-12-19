@@ -6,10 +6,10 @@ import numpy as np
 from typing import List
 from datetime import datetime, timedelta
 from slacktools import SlackTools
-from kavalkilu import Keys, Log
+from kavalkilu import Keys, LogWithInflux
 
 
-logg = Log('memeraker', log_to_db=True)
+logg = LogWithInflux('memeraker')
 vcreds = Keys().get_key('viktor_creds')
 st = SlackTools(**vcreds)
 user_me = 'UM35HE6R5'
@@ -64,7 +64,7 @@ for msg in msgs:
     raw_links_list = re.split(r'\s+', content)
     for raw_link in raw_links_list:
         # Try to parse out the link
-        link = re.search(r'^https:\/{2}(?!i\.redd\.it).*\.(jpe?g|png|gif)$', raw_link)
+        link = re.search(r'^https:/{2}(?!i\.redd\.it).*\.(jpe?g|png|gif)$', raw_link)
         if link is not None:
             meme_links.append(link.group())
 

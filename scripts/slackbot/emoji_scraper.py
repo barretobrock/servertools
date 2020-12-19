@@ -5,10 +5,10 @@ import json
 from urllib.request import Request, urlopen
 from lxml import etree
 from servertools import SlackComm
-from kavalkilu import Path, Log
+from kavalkilu import Path, LogWithInflux
 
 
-logg = Log('emoji-scraper', log_to_db=True)
+logg = LogWithInflux('emoji-scraper')
 scom = SlackComm()
 
 p = Path()

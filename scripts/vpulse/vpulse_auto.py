@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import datetime as dtt
-from kavalkilu import Log, LogArgParser, Keys, BrowserAction, NetTools, Hosts
-from kavalkilu.local_tools import slack_comm, notify_channel, user_me
+from kavalkilu import LogWithInflux, Keys, NetTools, Hosts, HOME_SERVER_HOSTNAME
+from servertools import BrowserAction, SlackComm
 
 
 ip = NetTools().get_ip()
-debug = Hosts().get_host('homeserv').get('ip', 'empty') != ip
-logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl if not debug else 'DEBUG')
+debug = Hosts().get_ip_from_host(HOME_SERVER_HOSTNAME) != ip
+logg = LogWithInflux('vpulse_auto')
 
 # TODO
 # build out a table of when monthly, weekly things were last done.

@@ -45,6 +45,6 @@ for i in range(attempts):
         time.sleep(wait_s)
 
 if not success:
-    log.error('Not successful at snapping timelapse photo')
+    log.error(f'Not successful at snapping timelapse photo for camera {CAMERA}')
 
 log.close()

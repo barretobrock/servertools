@@ -4,11 +4,11 @@
 from speedtest import Speedtest
 from datetime import datetime as dt
 import pandas as pd
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
 
 
 logg = LogWithInflux('speedtest')
-influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
+influx = InfluxDBLocal(InfluxDBHomeAuto.NETSPEED)
 # Prep speedtest by getting nearby servers
 logg.debug('Instantiating speedtest object.')
 speed = Speedtest()
@@ -35,7 +35,7 @@ test.loc[:, data_cols] = test[data_cols].applymap(lambda x: round(float(x), 4))
 test['server'] = f'{best_server["sponsor"]} ({best_server["name"]})'
 
 # Feed into Influx
-influx.write_df_to_table(InfluxTblNames.NETSPEED, test, 'server', ['download', 'upload', 'ping'], 'test_date')
+influx.write_df_to_table(test, 'server', ['download', 'upload', 'ping'], 'test_date')
 influx.close()
 
 logg.close()

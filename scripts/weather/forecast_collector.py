@@ -1,13 +1,13 @@
 """Collect forecast data"""
 from datetime import datetime, timedelta
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBNames, InfluxTblNames
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
 from servertools import OpenWeather, OWMLocation, NWSForecast, NWSForecastZone, \
     YrNoWeather, YRNOLocation
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('forecast', log_dir='weather')
-influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
+influx = InfluxDBLocal(InfluxDBHomeAuto.WEATHER)
 # Number of hours we're looking forward
 period_h = 24
 # Start & end of the lookahead
@@ -34,8 +34,7 @@ for svc, df in zip(['own', 'nws', 'yrno'], [owm_fc, nws_fc, yrno_fc]):
     df = df[(df['date'] >= p_start.strftime('%F %H:00:00')) &
             (df['date'] <= p_end.strftime('%F %H:00:00'))]
     df['loc'] = 'austin'
-    influx.write_df_to_table(
-        InfluxTblNames.WEATHER, df, 'loc', df.columns.tolist()[1:-1], 'date')
+    influx.write_df_to_table(df, 'loc', df.columns.tolist()[1:-1], 'date')
 
 influx.close()
 

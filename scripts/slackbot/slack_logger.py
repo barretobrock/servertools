@@ -3,32 +3,13 @@
 """Posts error logs to #errors channel in Slack"""
 import os
 import pandas as pd
-from kavalkilu import MySQLLocal, Log, LogArgParser, Paths
-from kavalkilu.local_tools import slack_comm, log_channel
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto, Path
+from servertools import SlackComm
 
 
-log = Log('slack_logger', log_lvl=LogArgParser().loglvl)
-db = MySQLLocal('logdb')
-mysqlconn = db.engine.connect()
-datapath = os.path.join(Paths().data_dir, 'slack_logs.txt')
+log = LogWithInflux('slack_logger')
+db = InfluxDBLocal(InfluxDBHomeAuto.LOGS)
 
-
-def save_log_tbl(df, fpath=datapath):
-    """Saves logs to path"""
-    with open(fpath, 'w') as f:
-        f.write(slack_comm.df_to_slack_table(df))
-
-
-log_splitter = {
-    'normal': {
-        'channel': '#logs',
-        'levels': ['DEBUG', 'INFO']
-    },
-    'error': {
-        'channel': '#logs',
-        'levels': ['ERROR', 'WARN']
-    }
-}
 
 # We read errors from x hours previous
 hour_interval = 4

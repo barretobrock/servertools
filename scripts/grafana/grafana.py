@@ -4,11 +4,11 @@ import os
 import time
 import requests
 from grafana_api.grafana_face import GrafanaFace
-from kavalkilu import Keys, Log
+from kavalkilu import Keys, LogWithInflux
 from servertools import SlackComm
 
 
-log = Log('grafana_snapper')
+log = LogWithInflux('grafana_snapper')
 creds = Keys().get_key('grafana-api')
 scom = SlackComm()
 
