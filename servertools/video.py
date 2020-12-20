@@ -82,6 +82,7 @@ class VidTools:
             threshold: min threshold (out of 255). used when calculating img differences
             ref_frame_turnover: the number of consecutive frames to use a single reference frame on
                 before resetting the reference
+            buffer_s: the seconds of buffer to include in video output before and after motion events
 
         NB! threshold probably shouldn't exceed 254
         """
@@ -106,28 +107,33 @@ class VidTools:
                     ref_frame = frame
 
         # Now loop through the frames we've marked and process them into clips
-        last_frame = None
-        sequence_frames = []    # These are frame positions that are sequential
-        processed_clips = []
-        for f in keep_frames:
-            if last_frame is None:
-                # First instance
+        # Determine the amount of buffer frames from the seconds of buffer
+        buffer_frame = int(round(clip.fps * buffer_s, 0))
+        # Begin calculating the sequences
+        sequences = []  # For holding lists of sequences
+        sequence_frames = [keep_frames[0]]
+        for f in keep_frames[1:]:
+            last_seq = sequence_frames[-1]
+            if f == last_seq + 1:
                 sequence_frames.append(f)
-            elif last_frame == f - 1:
+            elif f < last_seq + buffer_frame:
+                # Though our sequence isn't consecutive, it falls inside of the buffer. Add it
                 sequence_frames.append(f)
             else:
-                if len(sequence_frames) >= min_frames:
-                    processed_clips.append(
-                        self.develop_drawn_clip(org_clip=clip, sq_frames=sequence_frames, all_frames=frames,
-                                                buffer_s=buffer_s)
-                    )
+                # Frame is definitely outside the buffer. Make a new sequence
+                sequences.append((sequence_frames[0], sequence_frames[-1]))
                 sequence_frames = [f]
-            last_frame = f
         if len(sequence_frames) > 0:
-            processed_clips.append(
-                self.develop_drawn_clip(org_clip=clip, sq_frames=sequence_frames, all_frames=frames,
-                                        buffer_s=buffer_s)
-            )
+            sequences.append((sequence_frames[0], sequence_frames[-1]))
+
+        processed_clips = []
+        for start, end in sequences:
+            if end - start >= min_frames:
+                processed_clips.append(
+                    self.develop_drawn_clip(org_clip=clip, sq_frames=[start, end], all_frames=frames,
+                                            buffer_s=buffer_s)
+                )
+
         if len(processed_clips) > 0:
             final_clip = concatenate_videoclips(processed_clips)
             final_clip.write_videofile(fpath)
