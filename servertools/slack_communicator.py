@@ -7,7 +7,7 @@ from kavalkilu import Keys, LogWithInflux
 
 class SlackComm:
     def __init__(self, bot: str = 'sasha', parent_log: LogWithInflux = None):
-        creds = Keys().get_key(f'{bot.upper()}_SLACK_KEYS')
+        creds = Keys().get_key(f'{bot.lower()}')
         self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         self.st = SlackTools(creds, parent_log=self.log)
         self.bkb = BlockKitBuilder()

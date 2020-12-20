@@ -2,8 +2,9 @@ import os
 import json
 import socket
 from datetime import datetime as dt
-from openwrt_luci_rpc import OpenWrtRpc
 from typing import Tuple, List, Optional
+from openwrt_luci_rpc import OpenWrtRpc
+from kavalkilu import Keys
 
 
 class OpenWRT(OpenWrtRpc):
@@ -18,11 +19,8 @@ class OpenWRT(OpenWrtRpc):
     @staticmethod
     def _get_creds() -> Tuple[str, str]:
         """Collects the credentials"""
-        pw_path = os.path.join(os.path.expanduser('~'), *['keys', 'hidden-openwrt'])
-        with open(pw_path) as f:
-            creds = json.loads(f.read())
-        user, pw = creds.values()
-        return user, pw
+        creds = Keys().get_key('hidden-openwrt')
+        return creds['un'], creds['pw']
 
     def get_active_connections(self) -> dict:
         """Collects active connections"""

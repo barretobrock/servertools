@@ -9,14 +9,14 @@ from servertools import SlackComm
 
 
 log = LogWithInflux('grafana_snapper')
-creds = Keys().get_key('grafana-api')
+creds = Keys().get_key('grafana')
 scom = SlackComm()
 
 
 def get_pic_and_upload(url, name):
     """Captures dashboard panel at URL and uploads to #notifications slack channel"""
 
-    resp = requests.get(url, headers={'Authorization': f'Bearer {creds["key"]}'})
+    resp = requests.get(url, headers={'Authorization': f'Bearer {creds["token"]}'})
 
     temp_file = os.path.abspath('/tmp/dash_snap.png')
     with open(temp_file, 'wb') as f:
@@ -47,7 +47,7 @@ snap_panels = [
 
 scom.st.send_message(scom.notify_channel, 'Daily Report coming up!')
 # Use grafana API to get dashboard UID
-gapi = GrafanaFace(auth=creds['key'], host=creds['host'])
+gapi = GrafanaFace(auth=creds['token'])
 for dash_tag in ['home_automation', 'speedtests', 'logs', 'pihole']:
     dash_info = gapi.search.search_dashboards(tag=dash_tag)
     if len(dash_info) > 0:

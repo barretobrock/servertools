@@ -10,7 +10,7 @@ from kavalkilu import Keys, LogWithInflux
 
 
 logg = LogWithInflux('memeraker')
-vcreds = Keys().get_key('viktor_creds')
+vcreds = Keys().get_key('viktor')
 st = SlackTools(**vcreds)
 user_me = 'UM35HE6R5'
 

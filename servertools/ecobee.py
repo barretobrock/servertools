@@ -7,9 +7,10 @@ from kavalkilu import Keys
 
 class EcoBee:
     def __init__(self):
-        app_key = Keys().get_key('ecobee')
+        creds = Keys().get_key('ecobee')
+        app_key = creds['app-key']
         # Device serial number
-        self.sn = Keys().get_key('ecobee_sn')
+        self.sn = creds['serial']
         # Connect to the service
         self.service = EcobeeService('Home', app_key)
         # Get auth tokens

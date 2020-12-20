@@ -20,8 +20,8 @@ class Reolink(Camera):
     def __init__(self, ip: str, parent_log: LogWithInflux = None):
         self.ip = ip
         self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
-        creds = Keys().get_key('webcam_api')
-        super().__init__(self.ip, username=creds['user'], password=creds['password'])
+        creds = Keys().get_key('webcam')
+        super().__init__(self.ip, username=creds['un'], password=creds['pw'])
 
     def snapshot(self, filepath: str) -> bool:
         """Takes a snapshot - mirrors the similar method in Amcrest,
@@ -49,9 +49,9 @@ class Amcrest:
     def __init__(self, ip: str, port: int = 80, parent_log: LogWithInflux = None):
         self.ip = ip
         self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
-        self.creds = Keys().get_key('webcam_api')
+        self.creds = Keys().get_key('webcam')
         self.base_url = f'http://{ip}/cgi-bin'
-        self.base_url_with_cred = f'http://{self.creds["user"]}:{self.creds["password"]}@{ip}/cgi-bin'
+        self.base_url_with_cred = f'http://{self.creds["un"]}:{self.creds["pw"]}@{ip}/cgi-bin'
         self.config_url = f'{self.base_url}/configManager.cgi?action=setConfig'
         try:
             self.camera = amcrest.AmcrestCamera(ip, port, self.creds['user'], self.creds['password']).camera

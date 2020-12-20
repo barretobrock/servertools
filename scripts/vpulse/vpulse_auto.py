@@ -15,7 +15,7 @@ logg = LogWithInflux('vpulse_auto')
 # Handle weekly tasks either based on DOW or recorded table with date_last_done and freq columns
 
 # Get credentials
-creds = Keys().get_key('vpulse_creds')
+creds = Keys().get_key('vpulse-creds')
 
 
 def message_channel_and_log(msg):
