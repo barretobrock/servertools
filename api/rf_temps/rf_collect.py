@@ -12,7 +12,7 @@ from datetime import datetime
 import pandas as pd
 from kavalkilu import InfluxDBLocal, InfluxDBHomeAuto, LogWithInflux, \
     GracefulKiller, Hosts, HOME_SERVER_HOSTNAME
-from servertools import HueBulb, SlackComm
+from servertools import SlackComm, HAHelper
 
 
 logg = LogWithInflux('rf_temp')
@@ -112,10 +112,7 @@ while not killer.kill_now:
                 sc.st.send_message(sc.kodu_kanal, 'Someone used the garage door remote!')
             elif item == 'doorbell':
                 # Routines for notifying doorbell was used
-                sc.st.send_message(sc.kodu_kanal, '<!here> someone\'s at the door!')
-                for lt in ['floor-lamp', 'kontor-lamp']:
-                    light = HueBulb(lt)
-                    light.blink(3, trans_time=0.3)
+                HAHelper().call_webhook('doorbell_pressed')
         else:
             logg.info(f'Unknown device found: {data["model"]}: ({data["id"]})\n'
                       f'{json.dumps(data, indent=2)}')
