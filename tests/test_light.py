@@ -61,7 +61,6 @@ class TestHueBulb(unittest.TestCase):
         light.turn_off()
         self.assertTrue(not light.on)
 
-
     def test_sensor(self):
         sensor = HueSensor('garage-sensor')
         sensor.turn_on()

@@ -1,26 +1,20 @@
-import os
 import unittest
-import datetime
-import tempfile
-from kavalkilu import Hosts
-from servertools import Amcrest, SlackComm
+from datetime import datetime as dt
+from kavalkilu import Hosts, LogWithInflux
+from servertools import Amcrest
 
 
 class AmcrestTest(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.logg = LogWithInflux('cam-test', log_to_file=False)
+        cam_ip = Hosts().get_ip_from_host('ac-garaaz')
+        cls.cam = Amcrest(cam_ip, parent_log=cls.logg)
+
     def setUp(self) -> None:
-        self.sc = SlackComm()
-        cam_ip = Hosts().get_ip_from_host('ac-v2lis')
-        self.assertTrue(cam_ip != '')
-        self.cam = Amcrest(cam_ip)
-        self.temp_dir = tempfile.gettempdir()
-        self.MIN_AREA = 500
-        # Filepath for saving the cropped movie file before plugging in to opencv (in)
-        #   and for saving the mp4 with just motion detection areas from opencv (out)
-        self.temp_inmp4_fpath = os.path.join(self.temp_dir, 'tempin.mp4')
-        self.temp_outmp4_fpath = os.path.join(self.temp_dir, 'tempout.mp4')
-        self.start_dt = datetime.datetime.today().replace(hour=12, minute=0)
-        self.end_dt = datetime.datetime.today().replace(hour=13, minute=0)
+        self.start_dt = dt.today().replace(hour=12, minute=0)
+        self.end_dt = dt.today().replace(hour=13, minute=0)
 
     def test_logs(self):
         logs = self.cam.get_motion_log(self.start_dt, self.end_dt)
