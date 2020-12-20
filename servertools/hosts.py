@@ -24,6 +24,8 @@ class ServerHosts:
             'ot': 'misc'
         }
         self.hosts = []
+        # Populate the hosts list for the first time
+        self.read_hosts()
 
     def read_hosts(self):
         """Reads in /etc/hosts, parses data"""
