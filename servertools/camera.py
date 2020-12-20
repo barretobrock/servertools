@@ -54,7 +54,7 @@ class Amcrest:
         self.base_url_with_cred = f'http://{self.creds["un"]}:{self.creds["pw"]}@{ip}/cgi-bin'
         self.config_url = f'{self.base_url}/configManager.cgi?action=setConfig'
         try:
-            self.camera = amcrest.AmcrestCamera(ip, port, self.creds['user'], self.creds['password']).camera
+            self.camera = amcrest.AmcrestCamera(ip, port, self.creds['un'], self.creds['pw']).camera
             self.is_connected = True
             name = re.search(r'(?<=Name=).*(?=\r)', self.camera.video_channel_title).group()
             model = re.search(r'(?<=type=).*(?=\r)', self.camera.device_type).group()
@@ -86,7 +86,7 @@ class Amcrest:
 
     def _send_request(self, req_str: str):
         """Sends an HTTP request"""
-        result = requests.get(req_str, auth=HTTPDigestAuth(self.creds['user'], self.creds['password']))
+        result = requests.get(req_str, auth=HTTPDigestAuth(self.creds['un'], self.creds['pw']))
         if result.status_code != 200:
             raise Exception('Error in HTTP GET response. Status code: '
                             f'{result.status_code}, Message: {result.text}')
