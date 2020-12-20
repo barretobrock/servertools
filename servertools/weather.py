@@ -180,10 +180,10 @@ class NWSForecastZone:
 
 
 class NWSForecast:
-    def __init__(self, zone: str, tz: str = 'US/Central'):
+    def __init__(self, zone: str, timezone: str = 'US/Central'):
         """"""
         self.raw_data = self._get_raw_data(zone)
-        self.tz = tz
+        self.tz = timezone
 
     @staticmethod
     def _build_forecast_url(zone: str) -> str:
@@ -325,12 +325,12 @@ class OWMLocation:
 
 
 class OpenWeather:
-    def __init__(self, location: str, tz: str = 'US/Central'):
+    def __init__(self, location: str, timezone: str = 'US/Central'):
         sk = Keys()
-        self.api_key = sk.get_key('openweather_api')
+        self.api_key = sk.get_key('openweather').get('token', '')
         self.owm = OWM(self.api_key)
         self.location = location
-        self.tz = tz
+        self.tz = timezone
 
     def current_weather(self) -> pd.DataFrame:
         """Gets current weather for location"""
@@ -430,14 +430,14 @@ class YRNOLocation:
 
 class YrNoWeather:
     """Pulls weather data using Yr.no weather API"""
-    def __init__(self, location: str, tz: str = 'US/Central'):
+    def __init__(self, location: str, timezone: str = 'US/Central'):
         """
         Args:
             location(str): location name `country/region/city`
-            tz(str):  time zone to record time
+            timezone(str):  time zone to record time
         """
         self.location = location
-        self.tz = tz
+        self.tz = timezone
 
     @staticmethod
     def _process_data(data: dict) -> dict:
