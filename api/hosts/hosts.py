@@ -14,15 +14,19 @@ def reload_hosts():
 
 
 @hosts.route('/hosts', methods=['GET'])
-def get_hosts():
+def all_hosts():
+    return jsonify({'data': shost.all_hosts})
+
+
+@hosts.route('/host', methods=['GET'])
+def get_host():
     """Simple GET all hosts with static IPs"""
     host_name = request.args.get('name', default=None, type=str)
     ip = request.args.get('ip', default=None, type=str)
+    result = []
     if host_name is not None:
-        result = [shost.get_ip(host_name)]
+        result.append(shost.get_ip(host_name))
     elif ip is not None:
-        result = [shost.get_host(ip)]
-    else:
-        # Get everything
-        result = shost.hosts
+        result.append(shost.get_host(ip))
+
     return jsonify({'data': result})
