@@ -23,7 +23,7 @@ class ServerHosts:
             'an': 'mobile',
             'ot': 'misc'
         }
-        self.hosts = []
+        self.all_hosts = []
         # Populate the hosts list for the first time
         self.read_hosts()
 
@@ -45,7 +45,7 @@ class ServerHosts:
                 'name': name.strip(),
                 'machine_type': mach_type
             })
-        self.hosts = hosts
+        self.all_hosts = hosts
 
     def reload(self):
         """Reloads the hosts"""
@@ -53,22 +53,22 @@ class ServerHosts:
 
     def get_all_names(self) -> List[str]:
         """Returns a list of all the """
-        return [x['name'] for x in self.hosts]
+        return [x['name'] for x in self.all_hosts]
 
     def get_all_ips(self) -> List[str]:
         """Returns a list of all the """
-        return [x['ip'] for x in self.hosts]
+        return [x['ip'] for x in self.all_hosts]
 
-    def get_host(self, ip: str) -> str:
+    def get_host(self, ip: str) -> Dict[str, str]:
         """Returns ip from host name"""
-        for host in self.hosts:
+        for host in self.all_hosts:
             if host['ip'] == ip:
-                return host['name']
+                return host
         raise HostnameNotFoundException(f'Hostname not found for ip {ip}.')
 
-    def get_ip(self, hostname: str) -> str:
+    def get_ip(self, hostname: str) -> Dict[str, str]:
         """Returns ip from host name"""
-        for host in self.hosts:
+        for host in self.all_hosts:
             if host['name'] == hostname:
-                return host['ip']
+                return host
         raise IPAddressNotFoundException(f'IP address not found for hostname {hostname}.')
