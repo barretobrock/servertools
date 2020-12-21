@@ -32,6 +32,7 @@ mappings = {
     10246: {'name': 'v2lisuks'},
     12476: {'name': 'suur-wc'},
     14539: {'name': 'fridge'},
+    15227: {'name': 'mushroom-station'}
 }
 # Other items that aren't sensors
 other_mappings = {
