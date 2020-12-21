@@ -16,7 +16,7 @@ from servertools import SlackComm, HAHelper
 
 
 logg = LogWithInflux('rf_temp')
-sc = SlackComm()
+sc = SlackComm(parent_log=logg)
 UDP_IP = Hosts().get_ip_from_host(HOME_SERVER_HOSTNAME)
 UDP_PORT = 1433
 
