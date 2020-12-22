@@ -20,13 +20,14 @@ args = [
 ]
 ap = ArgParse(args, parse_all=False)
 CAMERA = ap.arg_dict.get('camera')
+log.debug(f'Using camera {CAMERA}...')
 ip = Hosts().get_ip_from_host(CAMERA)
 CamObj = Reolink if CAMERA.startswith('re') else Amcrest
 pic_dir = p.easy_joiner(p.data_dir, ['timelapse', CAMERA])
 if not os.path.exists(pic_dir):
     os.makedirs(pic_dir)
 attempts = 5
-wait_s = 3
+wait_s = 30
 
 success = False
 for i in range(attempts):
@@ -47,7 +48,14 @@ for i in range(attempts):
         # Camera on wifi can have shoddy connection.
         # Disregard any errors from the above command and just wait
         log.debug(f'Attempt failed: {err}. Waiting {wait_s}s.')
-        time.sleep(wait_s)
+        if CAMERA.startswith('ac'):
+            # Amcrests don't handle so well with WiFi it seems.
+            #   Try to perform a reboot to get the camera working properly
+            log.info('Performing reboot...')
+            cam.camera.reboot()
+            time.sleep(80)
+        else:
+            time.sleep(wait_s)
 
 if not success:
     log.error(f'Not successful at snapping timelapse photo for camera {CAMERA}.')
