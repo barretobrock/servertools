@@ -1,42 +1,34 @@
 """Checks slackmojis daily for new additions"""
-import sys
-import time
 import json
-from urllib.request import Request, urlopen
-from lxml import etree
-from servertools import SlackComm
 from kavalkilu import Path, LogWithInflux
+from servertools import SlackComm, XPathExtractor
 
 
 logg = LogWithInflux('emoji-scraper')
-scom = SlackComm()
+scom = SlackComm(bot='viktor', parent_log=logg)
 
 p = Path()
 fpath = p.easy_joiner(p.data_dir, 'slackmojis.json')
 chan = 'emoji_suggestions'
 url = 'https://slackmojis.com/emojis/recent'
-req = Request(url, headers={'User-Agent': 'Magic Browser'})
-resp = urlopen(req)
-if resp.code != 200:
-    # unsuccessful attempt, but still notify the channel
-    scom.st.send_message(chan, f'Failed to pull slackmoji report: {resp.status_code}')
-    sys.exit(1)
+xpath_extractor = XPathExtractor(url)
 
-htmlparser = etree.HTMLParser()
-tree = etree.parse(resp, htmlparser)
-
-emoji_list = tree.findall('//ul[@class="emojis"]')[0]
+tree = xpath_extractor.tree
+emoji_list = xpath_extractor.xpath_with_regex(tree, '//ul[@class="emojis"]')[0]
 emojis = emoji_list.getchildren()
 
 # Read in the previous emoji id list
-with open(fpath) as f:
-    prev_emos = json.loads(f.read())
+if not p.exists(fpath):
+    prev_emojis = {}
+else:
+    with open(fpath) as f:
+        prev_emojis = json.loads(f.read())
 
 new_emojis = {}
 for emoji in emojis:
     emo_id = emoji.getchildren()[0].get('data-emoji-id-name')
     emo_name = emoji.getchildren()[0].getchildren()[1].text.strip()
-    if emo_id not in prev_emos.keys():
+    if emo_id not in prev_emojis.keys():
         # Get link and add to the id list
         emo_link = emoji.findall('.//img')[0].get('src')
         if emo_link is not None:
@@ -45,26 +37,33 @@ for emoji in emojis:
                 'link': emo_link
             }
 
-help_text = """
+customize_url = f'https://{scom.st.team}.slack.com/customize/emoji?utm_source=in-prod&' \
+                f'utm_medium=inprod-customize_link-slack_menu-click'
+help_text = f"""
 *Emoji Upload Process*
  - Open the image in a browser (click the link or right click the image -> "open link")
  - Right click image -> `Save image as...` 
- - Go to the <https://orbitalkettlerelay.slack.com/customize/emoji?utm_source=in-prod&utm_medium=inprod-customize_link-slack_menu-click|custom emoji page> for OKR
+ - Go to the <{customize_url}|custom emoji page> for OKR
  - Click `Add Custom Emoji`
  - Upload file & give it a unique name! 
 """
 
 if len(new_emojis) > 0:
-    scom.st.send_message(chan, f'Found {len(new_emojis)} new emoji(s) from slackmojis!\n\n'
-                               f'{help_text}')
+    blocks = [
+        scom.bkb.make_context_section('New Emoji Report :postal_horn::postal_horn::postal_horn:')
+    ]
     for name, e_dict in new_emojis.items():
-        scom.st.send_message('emoji_suggestions', f'<{e_dict["link"]}|{e_dict["name"]}>')
-        time.sleep(10)
-    scom.st.send_message(chan, 'That\'s all for now!')
-    prev_emos.update(new_emojis)
+        blocks.append(
+            scom.bkb.make_block_section(f'*{e_dict["name"].replace(":", "")}*',
+                                        accessory=scom.bkb.make_image_accessory(e_dict['link'], 'emoji'))
+        )
+    # Iterate through blocks. Slack limits posts by 50 blocks.
+    for i in range(0, len(blocks), 50):
+        scom.st.send_message(channel=chan, message='Emoji Report!', blocks=blocks[i: i + 50])
+    prev_emojis.update(new_emojis)
 
 # Save data to path
 with open(fpath, 'w') as f:
-    json.dump(prev_emos, f)
+    json.dump(prev_emojis, f)
 
 logg.close()

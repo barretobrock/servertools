@@ -18,9 +18,9 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 ### Camera
 02 * * * *              $PY3    $HOME/$SCRIPTS/camera/reolink_motion_alerts.py -c re-v2lis -lvl debug
 15 * * * *              $PY3    $HOME/$SCRIPTS/camera/reolink_motion_alerts.py -c re-eesuks -lvl debug
-*/30 * * * *            $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-allr6du -lvl debug
-*/30 * * * *            $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-yler6du -lvl debug
-*/30 * * * *            $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c re-v2lis -lvl debug
+*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-allr6du -lvl debug
+*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-yler6du -lvl debug
+*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c re-v2lis -lvl debug
 ### Other
 #0 */2 * * *             $PY3    $HOME/$SCRIPTS/plants/mushroom-grow-toggle.py -lvl debug
 
@@ -29,6 +29,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 17 16 * * 0-5           $PY3    $HOME/$SCRIPTS/weather/daily_weather_and_sig_temp_warn.py -lvl debug
 */10 * * * *            $PY3    $HOME/$SCRIPTS/weather/severe_weather_check.py -lvl debug
 17 10 * * *             $PY3    $HOME/$SCRIPTS/weather/moon_phase.py
+27 9 * * *              $PY3    $HOME/$SCRIPTS/slackbot/emoji_scraper -lvl debug
 27 8 * * *              $PY3    $HOME/$SCRIPTS/slackbot/word-of-the-day.py -lvl debug
 
 ## SELENIUM
