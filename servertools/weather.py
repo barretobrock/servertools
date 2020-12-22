@@ -5,7 +5,7 @@ import re
 import json
 import requests
 import pandas as pd
-from typing import List, Union, Any
+from typing import List, Union, Any, Dict
 from datetime import datetime, timedelta
 from dateutil import tz
 from functools import reduce
@@ -15,14 +15,14 @@ from pyowm.weatherapi25.weather import Weather
 from pyowm.weatherapi25.forecast import Forecast
 from yr.libyr import Yr
 from slacktools import BlockKitBuilder
-from kavalkilu import Keys
+from kavalkilu import Keys, LogWithInflux, Path
 from .slack_communicator import SlackComm
 
 
 class SlackWeatherNotification:
-    def __init__(self):
+    def __init__(self, parent_log: LogWithInflux):
         self.bkb = BlockKitBuilder()
-        self.sComm = SlackComm()
+        self.sComm = SlackComm(parent_log=parent_log)
 
     @staticmethod
     def _format_severe_alert_text(alert_row: pd.Series) -> str:
@@ -32,9 +32,9 @@ class SlackWeatherNotification:
                     "*{title}*\n{desc}".format(**alert_dict)
         return alert_txt
 
-    def _notify_channel(self, alert_blocks: List[dict]):
+    def _notify_channel(self, alert_blocks: List[dict], channel: str, title: str):
         """Wrapper function to send alert to notification channel"""
-        self.sComm.st.send_message(self.sComm.ilma_kanal, '', blocks=alert_blocks)
+        self.sComm.st.send_message(channel=channel, message=title, blocks=alert_blocks)
 
     def severe_weather_alert(self, alert_df: pd.DataFrame):
         """Formats a severe weather notification for Slack & sends it"""
@@ -47,7 +47,7 @@ class SlackWeatherNotification:
             self.bkb.make_block_divider(),
             self.bkb.make_block_section(alert_list)
         ]
-        self._notify_channel(alert_blocks)
+        self._notify_channel(alert_blocks, channel=self.sComm.hoiatuste_kanal, title='Incoming weather alert!')
 
     def frost_alert(self, warning: str, lowest_temp: float, highest_wind: float):
         """Handles routines for alerting to a frost warning"""
@@ -57,7 +57,7 @@ class SlackWeatherNotification:
             self.bkb.make_block_section(
                 f'{warning.title()} Warning: `*{lowest_temp:.1f}C*` `*{highest_wind:.1f}m/s*`')
         ]
-        self._notify_channel(blocks)
+        self._notify_channel(blocks, channel=self.sComm.hoiatuste_kanal, title='Frost/Freeze Alert!')
 
     def sig_temp_change_alert(self, temp_diff: float, apptemp_diff: float, temp_dict: dict):
         """Handles routines for alerting a singificant change in temperature"""
@@ -69,7 +69,7 @@ class SlackWeatherNotification:
             self.bkb.make_block_divider(),
             self.bkb.make_block_section(msg_text)
         ]
-        self._notify_channel(blocks)
+        self._notify_channel(blocks, channel=self.sComm.hoiatuste_kanal, title='Sig Temp Change Alert!')
 
     def daily_weather_briefing(self, tomorrow: datetime, report: List[str]):
         """Presents a daily weather report for the work week"""
@@ -78,7 +78,7 @@ class SlackWeatherNotification:
             self.bkb.make_block_divider(),
             self.bkb.make_block_section(report)
         ]
-        self._notify_channel(blocks)
+        self._notify_channel(blocks, channel=self.sComm.ilma_kanal, title='Weather Report')
 
 
 class NWSAlertZone:
@@ -91,7 +91,8 @@ class NWSAlert:
     def __init__(self, target_zones: List[str]):
         self.zones = target_zones
         # This is where we store past alerts
-        self.data_path = os.path.join(os.path.expanduser('~'), *['data', 'severe_weather.csv'])
+        p = Path()
+        self.data_path = p.easy_joiner(p.data_dir, 'severe_weather.csv')
         self.old_alerts = self.get_old_alerts()
 
     def get_old_alerts(self) -> pd.DataFrame:
@@ -334,18 +335,20 @@ class OpenWeather:
 
     def current_weather(self) -> pd.DataFrame:
         """Gets current weather for location"""
-        cur = self.owm.weather_at_place(self.location).get_weather()
+        cur = self.owm.weather_manager().weather_at_place(self.location).weather
         cur_df = self._process_current_weather_data(cur)
         return cur_df
 
     def three_hour_forecast(self) -> pd.DataFrame:
         """3h summary for the next 5 days"""
-        data = self.owm.three_hours_forecast(self.location).get_forecast()
+        data = self.owm.weather_manager().forecast_at_place(self.location, '3h').forecast
+        # data = self.owm.three_hours_forecast(self.location).get_forecast()
         return self._process_3h_fc_data(data)
 
     def hourly_forecast(self) -> pd.DataFrame:
         """hourly summary (just three hours with gaps filled in) for the next 5 days"""
-        data = self.owm.three_hours_forecast(self.location).get_forecast()
+        data = self.owm.weather_manager().forecast_at_place(self.location, '3h').forecast
+        # data = self.owm.three_hours_forecast(self.location).get_forecast()
         data = self._process_3h_fc_data(data)
         rng = pd.date_range(
             pd.to_datetime(data.iloc[0, 0]), pd.to_datetime(data.iloc[-1, 0]), freq='1H')
@@ -355,30 +358,31 @@ class OpenWeather:
 
     def daily_summary(self) -> pd.DataFrame:
         """daily forecast for the next 5 days"""
-        data = self.owm.daily_forecast(self.location, limit=5).get_forecast()
+        data = self.owm.weather_manager().forecast_at_place(self.location, 'daily').forecast
+        # data = self.owm.daily_forecast(self.location, limit=5).get_forecast()
         return self._process_daily_fc_data(data)
 
     def _extract_common_weather_data(self, datapoint: Any, temperatures: dict) -> dict:
         """Extracts common (unchanging from hourly/daily methods) weather data
         from a given data point"""
-        wind = datapoint.get_wind('meters_sec')['speed']
-        hum = datapoint.get_humidity()
+        wind = datapoint.wind('meters_sec').get('speed')
+        hum = datapoint.humidity
         # Apply 'feels like' temperature
         feels = {f'feels-{k.lower()}': round(feels_like(Temp(v, 'c'), hum, wind).c, 2)
-                 for k, v in temperatures.items()}
-        dew_pt = datapoint.get_dewpoint() if datapoint.get_dewpoint() is not None \
+                 for k, v in temperatures.items() if 'feels' not in k}
+        dew_pt = datapoint.dewpoint if datapoint.dewpoint is not None \
             else dew_point(temperatures['temp-avg'], hum).c
         pt_dict = {
-            'date': pd.to_datetime(datapoint.get_reference_time('iso')).tz_convert(self.tz).strftime('%F %T'),
-            'summary': datapoint.get_detailed_status(),
-            'precip-intensity': datapoint.get_rain().get('3h', 0),
+            'date': pd.to_datetime(datapoint.reference_time('iso')).tz_convert(self.tz).strftime('%F %T'),
+            'summary': datapoint.detailed_status,
+            'precip-intensity': datapoint.rain.get('3h', 0),
             'dewpoint': round(dew_pt, 2),
             'humidity': hum / 100,
-            'pressure': datapoint.get_pressure()['press'],
+            'pressure': datapoint.pressure.get('press'),
             'wind-speed': wind,
-            'wind-bearing': datapoint.get_wind('meters_sec')['deg'],
-            'cloud-cover': datapoint.get_clouds() / 100,
-            'visibility': datapoint.get_visibility_distance()
+            'wind-bearing': datapoint.wind('meters_sec').get('deg'),
+            'cloud-cover': datapoint.clouds / 100,
+            'visibility': datapoint.visibility_distance
         }
         pt_dict.update(temperatures)
         pt_dict.update(feels)
@@ -389,8 +393,7 @@ class OpenWeather:
         cleaned = []
         for pt in data:
             # Extract temperatures (day, min, max, night, eve, morn)
-            temps = {f'temp-{k}': v for k, v in pt.get_temperature('celsius').items()}
-            temps['temp-avg'] = round((temps['temp-min'] + temps['temp-max']) / 2, 2)
+            temps = self._process_temps(pt)
             cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
 
@@ -399,26 +402,37 @@ class OpenWeather:
         cleaned = []
         for pt in data:
             # Extract temperatures (day, min, max, night, eve, morn)
-            temps_dict = pt.get_temperature('celsius')
-            temps = {
-                'temp-avg': temps_dict['temp'],
-                'temp-min': temps_dict['temp_min'],
-                'temp-max': temps_dict['temp_max']
-            }
+            temps = self._process_temps(pt)
             cleaned.append(self._extract_common_weather_data(pt, temps))
         return pd.DataFrame(cleaned)
 
     def _process_current_weather_data(self, data: Weather) -> pd.DataFrame:
         """Process current weather data"""
         cleaned = []
-        temps_dict = data.get_temperature('celsius')
-        temps = {
-            'temp-avg': temps_dict['temp'],
-            'temp-min': temps_dict['temp_min'],
-            'temp-max': temps_dict['temp_max']
-        }
+        temps = self._process_temps(data)
         cleaned.append(self._extract_common_weather_data(data, temps))
         return pd.DataFrame(cleaned)
+
+    @staticmethod
+    def _process_temps(datapoint: Union[Weather, Forecast]) -> Dict[str, float]:
+        """Processes the avg/min/max temps"""
+        temps_dict = datapoint.temperature('celsius')
+        # Remove 'kf' measurements that are sometimes NoneType
+        _ = temps_dict.pop('temp_kf', None)
+        processed_dict = {}
+        for k, v in temps_dict.items():
+            # Make a new key that uses kebab case and always has temp as a prefix
+            new_k = '-'.join(['temp'] + [x for x in k.replace('temp', '').strip().split('_') if x != ''])
+            if new_k == 'temp':
+                # Make this key the avg temp key
+                new_k = 'temp-avg'
+            processed_dict[new_k] = v
+        if 'temp-avg' not in processed_dict.keys() and \
+                all([x in processed_dict.keys() for x in ['temp-min', 'temp-max']]):
+            # Make average from min/max
+            processed_dict['temp-avg'] = round((processed_dict['temp-min'] + processed_dict['temp-max']) / 2, 2)
+
+        return processed_dict
 
 
 class YRNOLocation:
