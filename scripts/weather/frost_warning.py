@@ -32,7 +32,7 @@ for name, cond in logic_dict.items():
         break
 
 if warning is not None:
-    swno = SlackWeatherNotification()
+    swno = SlackWeatherNotification(parent_log=log)
     lowest_temp = hours_df['temp-avg'].min()
     highest_wind = hours_df['wind-speed'].max()
     # Send alert

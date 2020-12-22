@@ -8,7 +8,7 @@ from servertools import NWSAlert, NWSAlertZone, SlackWeatherNotification
 log = LogWithInflux('severe_weather', log_dir='weather')
 
 nwa = NWSAlert(NWSAlertZone.ATX)
-slacknotify = SlackWeatherNotification()
+slacknotify = SlackWeatherNotification(parent_log=log)
 
 alerts = nwa.process_alerts()
 if not alerts.empty:

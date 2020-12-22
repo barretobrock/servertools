@@ -9,7 +9,7 @@ from servertools import NWSForecast, NWSForecastZone, SlackWeatherNotification
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('significant_change', log_dir='weather')
 
-swno = SlackWeatherNotification()
+swno = SlackWeatherNotification(parent_log=log)
 
 now = datetime.now()
 tomorrow = (now + timedelta(days=1))
