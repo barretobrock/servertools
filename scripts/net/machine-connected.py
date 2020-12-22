@@ -47,7 +47,7 @@ unknown_ips = ow.show_unknown_ips()
 logg.debug(f'Found {len(unknown_ips)} unknown ips.')
 if len(unknown_ips) > 0:
     bkb = BlockKitBuilder()
-    sc = SlackComm()
+    sc = SlackComm(parent_log=logg)
     blocks = []
     msg_chunk = []
     for ip in unknown_ips:
@@ -63,7 +63,7 @@ if len(unknown_ips) > 0:
             bkb.make_block_divider(),
             bkb.make_block_section(msg_chunk)
         ]
-        sc.st.send_message(sc.koduv6rgu_kanal, message='', blocks=blocks)
+        sc.st.send_message(sc.koduv6rgu_kanal, message='Unknown IP message', blocks=blocks)
 
 # This basically just replaces the file of saved ips that are currently connected to the router
 logg.debug('Saving current connection states.')

@@ -21,10 +21,7 @@ args = [
 ap = ArgParse(args, parse_all=False)
 CAMERA = ap.arg_dict.get('camera')
 ip = Hosts().get_ip_from_host(CAMERA)
-if CAMERA.startswith('re'):
-    cam = Reolink(ip, parent_log=log)
-else:
-    cam = Amcrest(ip, parent_log=log)
+CamObj = Reolink if CAMERA.startswith('re') else Amcrest
 pic_dir = p.easy_joiner(p.data_dir, ['timelapse', CAMERA])
 if not os.path.exists(pic_dir):
     os.makedirs(pic_dir)
@@ -35,6 +32,7 @@ success = False
 for i in range(attempts):
     # Take a pic, save it
     try:
+        cam = CamObj(ip, parent_log=log)
         fpath = p.easy_joiner(pic_dir, f'{CAMERA}_{dt.now():%F_%T}.png')
         success = cam.snapshot(fpath)
         if success:
@@ -48,7 +46,7 @@ for i in range(attempts):
     except Exception as err:
         # Camera on wifi can have shoddy connection.
         # Disregard any errors from the above command and just wait
-        log.debug(f'Attempt failed. Waiting {wait_s}s.')
+        log.debug(f'Attempt failed: {err}. Waiting {wait_s}s.')
         time.sleep(wait_s)
 
 if not success:
