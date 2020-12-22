@@ -4,7 +4,6 @@
 Handles exceptions while interacting with Selenium objects
 """
 import time
-import datetime
 from random import randint
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options

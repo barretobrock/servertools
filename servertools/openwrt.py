@@ -4,14 +4,15 @@ import socket
 from datetime import datetime as dt
 from typing import Tuple, List, Optional
 from openwrt_luci_rpc import OpenWrtRpc
-from kavalkilu import Keys
+from kavalkilu import Keys, Path
 
 
 class OpenWRT(OpenWrtRpc):
     """Common methods for interacting with an OpenWRT router"""
     def __init__(self):
         super().__init__('192.168.1.1', *self._get_creds())
-        self.data_path = os.path.join(os.path.expanduser('~'), *['data', 'connected-ips.json'])
+        p = Path()
+        self.data_path = p.easy_joiner(p.data_dir, 'connected-ips.json')
         self.current_connections = self.get_active_connections()
         self.previous_connections = self.get_previously_active_connections()
         self._add_connection_time_to_new_clients()

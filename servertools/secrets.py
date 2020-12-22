@@ -3,9 +3,11 @@ from pykeepass.entry import Entry
 from kavalkilu import Path
 
 
+p = Path()
+
+
 def get_secret_file(fname: str) -> str:
     """Grabs a file containing a 'metasecret' (secret for obtaining secrets)"""
-    p = Path()
     secret_path = p.easy_joiner(p.keys_dir, fname)
     if not p.exists(secret_path):
         raise FileNotFoundError(f'File at \'{secret_path}\' does not exist.')
@@ -14,7 +16,7 @@ def get_secret_file(fname: str) -> str:
 
 
 class Secrets:
-    DATABASE_PATH = Path.easy_joiner(Path().keys_dir, 'secretprops.kdbx')
+    DATABASE_PATH = p.easy_joiner(p.keys_dir, 'secretprops.kdbx')
 
     def __init__(self, password: str):
         self.db = None
