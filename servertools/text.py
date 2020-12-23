@@ -141,17 +141,35 @@ class XPathExtractor:
         return elem.getchildren()[n]
 
     @staticmethod
-    def get_urls_from_elems(elem_list: List[_Element], from_attr: str = 'href') -> List[str]:
-        """Extracts all the URLs in a particular attribute field from a list of elements"""
+    def get_attr_from_elems(elem_list: List[_Element], from_attr: str = 'href') -> List[str]:
+        """Extracts an attribute from all the elements in a list having that particular attribute field"""
         return [elem.get(from_attr) for elem in elem_list if elem.get(from_attr) is not None]
 
+    def xpath(self, xpath: str, obj: _Element = None, single: bool = False, get_text: bool = False) -> \
+            Union[str, _Element, List[_Element]]:
+        """Retrieves element(s) matching the given xpath"""
+        method = self.tree.xpath if obj is None else obj.xpath
+        elem = None
+        elems = method(xpath)
+        if single:
+            elem = elems[0]
+
+        if get_text:
+            return ''.join([x for e in elems for x in e])
+        else:
+            return elem if single else elems
+
     @staticmethod
-    def xpath_with_regex(obj: _Element, xpath: str) -> Union[_Element, List[_Element]]:
+    def class_contains(cls: str) -> str:
+        return f'(@class, "{cls}"'
+
+    def xpath_with_regex(self, xpath: str, obj: _Element = None) -> Union[_Element, List[_Element]]:
         """Leverages xpath with regex
         Example:
-            >>> xpath_with_regex('//div[re:match(@class, "w?ord.*")]/h1')
+            >>> self.xpath_with_regex('//div[re:match(@class, "w?ord.*")]/h1')
         """
-        return obj.xpath(xpath, namespaces={"re": "http://exslt.org/regular-expressions"})
+        method = self.tree.xpath if obj is None else obj.xpath
+        return method(xpath, namespaces={"re": "http://exslt.org/regular-expressions"})
 
 
 class TextCleaner:
