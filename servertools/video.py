@@ -88,7 +88,6 @@ class VidTools:
         """
         clip = VideoFileClip(fpath)
         frames = [x for x in clip.iter_frames()]
-        total_frames = len(frames)
         # Set the reference frame
         ref_frame = clip.get_frame(0)
         keep_frames = []    # For determining which frames have motion
@@ -106,6 +105,9 @@ class VidTools:
                     # Reset the reference frame
                     ref_frame = frame
 
+        if len(keep_frames) == 0:
+            # Exit method... Nothing was determined to keep
+            return False, None, None
         # Now loop through the frames we've marked and process them into clips
         # Determine the amount of buffer frames from the seconds of buffer
         buffer_frame = int(round(clip.fps * buffer_s, 0))
