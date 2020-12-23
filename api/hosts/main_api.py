@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from flask import Flask
+from kavalkilu import LogWithInflux
 from servertools import get_secret_file
 from api.hosts.hosts import hosts
 from api.hosts.keys import keys
 
+
+logg = LogWithInflux('hosts-api')
 app = Flask(__name__)
 for blueprint in [keys, hosts]:
     app.register_blueprint(blueprint)
