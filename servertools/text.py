@@ -155,7 +155,7 @@ class XPathExtractor:
             elem = elems[0]
 
         if get_text:
-            return ''.join([x for e in elems for x in e])
+            return ''.join([x for e in elems for x in e.itertext()])
         else:
             return elem if single else elems
 
