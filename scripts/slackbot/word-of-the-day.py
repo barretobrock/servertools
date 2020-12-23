@@ -36,7 +36,6 @@ def italicize_paragraph(text: str, elem: _Element):
 def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
     """Extract Synonym/Word of the day"""
     xtool = XPathExtractor(url)
-    tree = xtool.tree
     # Get the most recent WOTD
     class_prefix = 'wotd' if is_wotd else 'sotd'
     title_section = 'word' if is_wotd else 'synonym'
@@ -86,7 +85,7 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
             usage_txt += f'*`{evidence}`*\n\t> {example}\n'
         example_section = f'*Commonly Found As*\n\n{usage_txt}_Try using it in an email today!_'
 
-    blocks = [
+    return [
         bkb.make_context_section([
             f'{title_section.title()} of the Day: *`{word}`* _`{pronunc}`_',
             f'{pos}, _`{definition}`_'
@@ -96,7 +95,6 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
         bkb.make_block_divider(),
         bkb.make_block_section(example_section)
     ]
-    return blocks
 
 
 wotd_blocks = extract_otd(wotd_url, is_wotd=True)
