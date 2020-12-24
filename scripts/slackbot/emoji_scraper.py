@@ -59,7 +59,7 @@ if len(new_emojis) > 0:
     # Iterate through blocks. Slack limits posts by 50 blocks.
     for i in range(0, len(blocks), 50):
         logg.debug(f'Sending message block {i + 1}')
-        # scom.st.send_message(channel=chan, message='Emoji Report!', blocks=blocks[i: i + 50])
+        scom.st.send_message(channel=chan, message='Emoji Report!', blocks=blocks[i: i + 50])
     prev_emojis.update(new_emojis)
 
 # Save data to path
