@@ -2,7 +2,7 @@ import os
 import math
 import tempfile
 from datetime import datetime as dt, timedelta
-from moviepy.editor import VideoFileClip, concatenate_videoclips
+from moviepy.editor import VideoFileClip
 from kavalkilu import Hosts, LogWithInflux
 from easylogger import ArgParse
 from servertools import SlackComm, VidTools, Reolink
@@ -78,7 +78,7 @@ if len(motion_files) > 0:
                                         trim_files=False, prefix=f'{CAMERA}_motion')
     # Draw rectangles over the motion zones
     logg.debug(f'Detecting motion in downloaded video file...')
-    upload, fpath, duration = vt.draw_on_motion(fpath, min_area=500, min_frames=2, threshold=20,
+    upload, fpath, duration = vt.draw_on_motion(fpath, min_area=500, min_frames=10, threshold=20,
                                                 ref_frame_turnover=20, buffer_s=0.5)
     if upload:
         logg.info(f'Uploading vid to channel')

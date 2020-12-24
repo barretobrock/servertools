@@ -158,10 +158,10 @@ class VidTools:
         duration = org_clip.duration
         tot_frames = len(all_frames)
         # Calculate number of frames to buffer before and after motion areas
-        buffer_fr = int(org_clip.fps / buffer_s)
+        buffer_fr = int(org_clip.fps * buffer_s)
 
         # Calculate the start and end frames with the buffers
-        st_with_buffer = sq_frames[0] - buffer_fr
+        st_with_buffer = sq_frames[0]
         end_with_buffer = sq_frames[-1] + buffer_fr
         start_frame_pos = st_with_buffer if st_with_buffer > 0 else 0
         end_frame_pos = end_with_buffer if end_with_buffer < tot_frames else tot_frames - 1
