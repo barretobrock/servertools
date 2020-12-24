@@ -71,5 +71,20 @@ class TestHueBulb(unittest.TestCase):
         self.assertTrue(sensor.on)
 
 
+class TestHueSensor(unittest.TestCase):
+    """Test suite for the HueSensor class"""
+    def setUp(self) -> None:
+        pass
+
+    def test_motion_sensor(self):
+        """Test standard procedures associated with a color-capable light"""
+        sensor = HueSensor('garage-sensor')
+        self.assertTrue(isinstance(sensor.battery, int))
+        sensor.turn_on()
+        sensor.turn_off()
+        sensor.toggle()
+        self.assertTrue(sensor.on)
+
+
 if __name__ == '__main__':
     unittest.main()

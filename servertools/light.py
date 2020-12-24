@@ -41,7 +41,7 @@ class HueBulb(Light):
     DEEP_BLUE = [.12, .03]
     FULL_BRIGHTNESS = 254
     FULL_SATURATION = 254
-    #B-S-H-COL
+    # B-S-H-COL
     SCENE_WARM_FULL = (FULL_BRIGHTNESS, 166, 9728, (0.4447, 0.3968))
     SCENE_WARM_DIM = (6, 166, 9728, (0.5019, 0.4152))
 
