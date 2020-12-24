@@ -11,8 +11,8 @@ import socket
 from datetime import datetime
 import pandas as pd
 from kavalkilu import InfluxDBLocal, InfluxDBHomeAuto, LogWithInflux, \
-    GracefulKiller, Hosts, HOME_SERVER_HOSTNAME
-from servertools import SlackComm, HAHelper
+    GracefulKiller, Hosts, HOME_SERVER_HOSTNAME, HAHelper
+from servertools import SlackComm
 
 
 logg = LogWithInflux('rf_temp')
