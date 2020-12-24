@@ -1,24 +1,47 @@
 import time
-from kavalkilu import LogWithInflux
+from typing import Tuple, Optional
+from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
 from servertools import HueBulb
 
 INTERVAL_MINS = 30
-ON_TIME_WEIGHT = 1 / 3
-OFF_TIME_WEIGHT = 1 - ON_TIME_WEIGHT
-
+WAIT_S = 300
+end_time = time.time() + INTERVAL_MINS
 logg = LogWithInflux('mushroom-grow-toggle')
+influx = InfluxDBLocal(InfluxDBHomeAuto.TEMPS)
 h = HueBulb('mushroom-plug')
-n_rounds = int(60 / INTERVAL_MINS)
 
-on_period_secs = INTERVAL_MINS * 60 * ON_TIME_WEIGHT
-off_period_secs = INTERVAL_MINS * 60 * OFF_TIME_WEIGHT
 
-for x in range(0, n_rounds):
-    h.turn_on()
-    logg.debug(f'Turning on humidifier. Waiting {on_period_secs / 60:.0f} mins')
-    time.sleep(on_period_secs)
-    logg.debug(f'Turning off humidifier. Waiting {off_period_secs / 60:.0f} mins...')
-    h.turn_off()
-    time.sleep(off_period_secs)
+def take_measurement() -> Tuple[Optional[float], Optional[float]]:
+    query = '''
+    SELECT 
+        last("temp") AS temp
+        , last("humidity") AS hum 
+    FROM "temps" 
+    WHERE 
+        "location" = 'mushroom-station'
+        AND time > now() - 30m
+    GROUP BY 
+        time(1m) 
+    ORDER BY time DESC
+    '''
+    df = influx.read_query(query, 'time').dropna().reset_index()
+    if not df.empty:
+        return df.loc[0].tolist()[2:]
+    return None, None
+
+
+rounds = 0
+while end_time > time.time():
+    temp, hum = take_measurement()
+    logg.debug(f'Pulled measurements: temp: {temp}, hum: {hum}')
+    if hum > 90 and h.on:
+        logg.debug('Humidity reached target threshold. Turning off.')
+        h.turn_off()
+    elif hum < 70 and not h.on:
+        logg.debug('Humidity out of safety zone. Turning on.')
+        h.turn_on()
+    rounds += 1
+    logg.debug(f'Waiting {WAIT_S / 60} mins...')
+    time.sleep(WAIT_S)
 
 logg.close()
