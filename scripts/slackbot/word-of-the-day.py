@@ -67,7 +67,7 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
         example_txt = ""
         for example in examples:
             example_txt += f'>{"".join(example.itertext()).strip()}\n\n'
-        example_section = f'*Example Usage*\n\n{example_txt}_Try using it in an email today!_'
+        example_section = f'*Example Usage*\n\n{example_txt}'
     else:
         pos = pronunc[: pronunc.index('[')].strip()
         pronunc = pronunc[pronunc.index('['):].strip()
@@ -83,7 +83,7 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
             evidence = xtool.xpath('.//div[@class="sotd-item__usage__evidence"]', usage, get_text=True).strip()
             example = xtool.xpath('.//div[@class="sotd-item__usage__example"]', usage, get_text=True).strip()
             usage_txt += f'*`{evidence}`*\n\t> {example}\n'
-        example_section = f'*Commonly Found As*\n\n{usage_txt}_Try using it in an email today!_'
+        example_section = f'*Commonly Found As*\n\n{usage_txt}'
 
     return [
         bkb.make_context_section([
@@ -93,7 +93,8 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
         bkb.make_block_divider(),
         bkb.make_block_section(desc_section),
         bkb.make_block_divider(),
-        bkb.make_block_section(example_section)
+        bkb.make_block_section(example_section),
+        bkb.make_context_section('_Try using it in an email today!_')
     ]
 
 
