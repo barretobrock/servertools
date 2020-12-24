@@ -61,6 +61,8 @@ if len(new_emojis) > 0:
         logg.debug(f'Sending message block {i + 1}')
         scom.st.send_message(channel=chan, message='Emoji Report!', blocks=blocks[i: i + 50])
     prev_emojis.update(new_emojis)
+else:
+    logg.debug('No new emojis to send.')
 
 # Save data to path
 with open(fpath, 'w') as f:

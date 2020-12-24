@@ -7,7 +7,7 @@ After=multi-user.target
 User=bobrock
 Group=bobrock
 Type=idle
-ExecStart=/usr/local/bin/rtl_433 -F syslog:192.168.1.5:1433
+ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/api/rf_temps/rf_stream.py -lvl debug
 Restart=on-failure
 
 [Install]

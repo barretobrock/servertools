@@ -67,7 +67,10 @@ killer = GracefulKiller()
 
 # Set up methods to periodically send processed data packets to Influx
 interval = datetime.now()
-split_s = 600   # Data packet to influx interval
+# Adjust interval to be an even 10 mins
+replace_mins = interval.minute - interval.minute % 10
+interval = interval.replace(minute=replace_mins, second=0, microsecond=0)
+split_s = 300   # Data packet to influx interval
 logg.debug(f'Data packets sent to Influx every {split_s / 60} mins.')
 data_df = pd.DataFrame()
 
@@ -125,7 +128,7 @@ while not killer.kill_now:
         for col in ['temp', 'humidity']:
             if col in data_df.columns:
                 data_df[col] = data_df[col].astype(float)
-        logg.debug(f'Logging interval reached. Sending over {data_df.shape[0]} points to db.')
+        logg.debug(f'Logging interval reached. Sending {data_df.shape[0]} data points to db.')
         influx.write_df_to_table(data_df, tags='location', value_cols=['temp', 'humidity'], time_col='timestamp')
         # Reset our info
         logg.debug('Resetting interval and dataframe.')
