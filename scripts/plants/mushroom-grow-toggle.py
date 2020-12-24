@@ -5,7 +5,7 @@ from servertools import HueBulb
 
 INTERVAL_MINS = 30
 WAIT_S = 300
-end_time = time.time() + INTERVAL_MINS
+end_time = time.time() + INTERVAL_MINS * 60
 logg = LogWithInflux('mushroom-grow-toggle')
 influx = InfluxDBLocal(InfluxDBHomeAuto.TEMPS)
 h = HueBulb('mushroom-plug')
