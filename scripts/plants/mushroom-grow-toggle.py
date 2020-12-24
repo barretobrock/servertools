@@ -4,7 +4,7 @@ from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
 from servertools import HueBulb
 
 INTERVAL_MINS = 30
-WAIT_S = 300
+WAIT_S = 290
 end_time = time.time() + INTERVAL_MINS * 60
 logg = LogWithInflux('mushroom-grow-toggle')
 influx = InfluxDBLocal(InfluxDBHomeAuto.TEMPS)
@@ -37,7 +37,7 @@ while end_time > time.time():
     if hum > 90 and h.on:
         logg.debug('Humidity reached target threshold. Turning off.')
         h.turn_off()
-    elif hum < 70 and not h.on:
+    elif hum < 80 and not h.on:
         logg.debug('Humidity out of safety zone. Turning on.')
         h.turn_on()
     rounds += 1
