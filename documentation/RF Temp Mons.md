@@ -28,6 +28,8 @@ Loads both streaming and collection services. Stream provides a way to receive R
 ```bash
 sh api/rf_temps/load_rf_stream_service.sh
 sh api/rf_temps/load_rf_collect_service.sh
+sudo systemctl start rf_stream
+sudo systemctl start rf_collect
 ```
  
 ## Resources
