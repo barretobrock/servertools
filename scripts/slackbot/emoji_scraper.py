@@ -13,8 +13,7 @@ chan = 'emoji_suggestions'
 url = 'https://slackmojis.com/emojis/recent'
 xpath_extractor = XPathExtractor(url)
 
-tree = xpath_extractor.tree
-emoji_list = xpath_extractor.xpath_with_regex(tree, '//ul[@class="emojis"]')[0]
+emoji_list = xpath_extractor.xpath('//ul[@class="emojis"]', single=True)
 emojis = emoji_list.getchildren()
 
 # Read in the previous emoji id list
@@ -50,7 +49,7 @@ help_text = f"""
 
 if len(new_emojis) > 0:
     blocks = [
-        scom.bkb.make_context_section('New Emoji Report :postal_horn::postal_horn::postal_horn:')
+        scom.bkb.make_context_section('New Emojis :postal_horn::postal_horn::postal_horn:')
     ]
     for name, e_dict in new_emojis.items():
         blocks.append(
@@ -59,7 +58,8 @@ if len(new_emojis) > 0:
         )
     # Iterate through blocks. Slack limits posts by 50 blocks.
     for i in range(0, len(blocks), 50):
-        scom.st.send_message(channel=chan, message='Emoji Report!', blocks=blocks[i: i + 50])
+        logg.debug(f'Sending message block {i + 1}')
+        # scom.st.send_message(channel=chan, message='Emoji Report!', blocks=blocks[i: i + 50])
     prev_emojis.update(new_emojis)
 
 # Save data to path
