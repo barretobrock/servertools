@@ -136,6 +136,16 @@ class XPathExtractor:
         return etree.parse(resp, htmlparser)
 
     @staticmethod
+    def get_inner_html(elem: _Element) -> str:
+        """Extracts the HTML as text from a given element"""
+        return etree.tostring(elem, encoding='utf-8').decode('utf-8')
+
+    @staticmethod
+    def read_str_to_html(string: str) -> _Element:
+        """Takes a string and reads it in as HTML elements"""
+        return etree.fromstring(string)
+
+    @staticmethod
     def get_nth_child(elem: _Element, n: int) -> _Element:
         """Returns the nth child of an element"""
         return elem.getchildren()[n]

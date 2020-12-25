@@ -1,6 +1,5 @@
 import re
 from typing import List
-from lxml.etree import _Element
 from slacktools import BlockKitBuilder as bkb
 from servertools import XPathExtractor, SlackComm
 from kavalkilu import LogWithInflux
@@ -10,27 +9,6 @@ logg = LogWithInflux('wotd')
 
 wotd_url = 'https://www.dictionary.com/e/word-of-the-day/'
 sotd_url = 'https://www.thesaurus.com/e/synonym-of-the-day/'
-
-
-def italicize_paragraph(text: str, elem: _Element):
-    """Formats keywords in paragraph according to Slack's markdown"""
-    # Build a list of things to italicise
-    italics = []
-    for item in elem.iter('em'):
-        stripped = item.text.strip()
-        if stripped == '' or len(stripped) < 2:
-            continue
-        italics.append(stripped)
-    # Apply italics to origin_text
-    for italic in list(set(italics)):
-        re_str = f'[\\s]+([\\W]*({italic}))[\\W\\s]*'
-        matches = re.finditer(re_str, text)
-        # len([x for x in matches])
-        for match in matches:
-            original = match.group(0)
-            replacement = re.sub(r'\s+', ' ', original.replace(match.group(2), f' _`{match.group(2)}`_ '))
-            text = text.replace(original, replacement)
-    return text
 
 
 def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
@@ -47,7 +25,7 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
     # Pronunciation
     pronunc = xtool.xpath('.//div[contains(@class, "otd-item-headword__pronunciation")]', obj=otd,
                           single=True, get_text=True)
-    pronunc = re.sub(r'\s+', ' ', pronunc)
+    pronunc = re.sub(r'\s+', ' ', pronunc.strip())
 
     # Extract the part of speech
     if is_wotd:
@@ -58,8 +36,13 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
         # Break down the origin section
         origin = xtool.xpath('.//div[contains(@class, "wotd-item-origin__content")]', otd, single=True)
         origin_title = origin.find('./h2').text
-        origin_text = ''.join(origin.find('./p').itertext())
-        origin_text = italicize_paragraph(origin_text, origin)
+        # Get the text in the origin, with tags preserved
+        inner = xtool.get_inner_html(xtool.xpath('.//p/span', obj=origin, single=True))
+        # For each <em> element, convert to slack markdown equivalent
+        inner = re.sub(r'<em>', '_`', inner)
+        inner = re.sub(r'</em>', '`_', inner)
+        # Read back into an element, extract the text, thus removing the span bits
+        origin_text = xtool.read_str_to_html(inner).text
         desc_section = f'*{origin_title}*\n\n{origin_text}'
         # Break out examples
         example = otd.find('.//div[@class="wotd-item-examples wotd-item-examples--last"]')
