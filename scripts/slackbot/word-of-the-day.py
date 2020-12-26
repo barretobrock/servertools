@@ -37,7 +37,11 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
         origin = xtool.xpath('.//div[contains(@class, "wotd-item-origin__content")]', otd, single=True)
         origin_title = origin.find('./h2').text
         # Get the text in the origin, with tags preserved
-        inner = xtool.get_inner_html(xtool.xpath('.//p/span', obj=origin, single=True))
+        try:
+            inner = xtool.get_inner_html(xtool.xpath('.//p/span', obj=origin, single=True))
+        except IndexError:
+            # No span element
+            inner = xtool.get_inner_html(xtool.xpath('.//p', obj=origin, single=True))
         # For each <em> element, convert to slack markdown equivalent
         inner = re.sub(r'<em>', '_`', inner)
         inner = re.sub(r'</em>', '`_', inner)

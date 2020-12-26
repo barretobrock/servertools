@@ -37,7 +37,7 @@ while end_time > time.time():
     if hum > 90 and h.on:
         logg.debug('Humidity reached target threshold. Turning off.')
         h.turn_off()
-    elif hum < 80 and not h.on:
+    elif hum < 85 and not h.on:
         logg.debug('Humidity out of safety zone. Turning on.')
         h.turn_on()
     rounds += 1
