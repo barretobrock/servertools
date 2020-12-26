@@ -18,9 +18,9 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 ### Camera
 02 * * * *              $PY3    $HOME/$SCRIPTS/camera/reolink_motion_alerts.py -c re-v2lis -lvl debug
 15 * * * *              $PY3    $HOME/$SCRIPTS/camera/reolink_motion_alerts.py -c re-eesuks -lvl debug
-*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-allr6du -lvl debug
-*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-yler6du -lvl debug
-*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c re-v2lis -lvl debug
+#*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-allr6du -lvl debug
+#*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c ac-yler6du -lvl debug
+#*/5 * * * *             $PY3    $HOME/$SCRIPTS/camera/timelapse.py -c re-v2lis -lvl debug
 ### Other
 */30 * * * *            $PY3    $HOME/$SCRIPTS/plants/mushroom-grow-toggle.py -lvl debug
 
