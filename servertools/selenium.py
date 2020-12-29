@@ -94,7 +94,7 @@ class BrowserAction:
                 else:
                     return thing
             except Exception as e:
-                self.log.error(f'Attempt {i + 1}: fail -- {e}', incl_info=False)
+                self.log.error(f'Attempt {i + 1}: fail -- {e}')
 
     def tear_down(self):
         """Make sure the browser is closed on cleanup"""
