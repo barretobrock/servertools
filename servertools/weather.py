@@ -28,7 +28,7 @@ class SlackWeatherNotification:
     def _format_severe_alert_text(alert_row: pd.Series) -> str:
         """Formats the row of alerts into a string"""
         alert_dict = alert_row.to_dict()
-        alert_txt = "*`{event}`*({severity})\t\t`{start}` to `{end}`\n" \
+        alert_txt = "*`{event}`* ({severity})\t\t`{start}` to `{end}`\n" \
                     "*{title}*\n{desc}".format(**alert_dict)
         return alert_txt
 
@@ -55,7 +55,7 @@ class SlackWeatherNotification:
             self.bkb.make_context_section(f'Frost/Freeze Alert <@{self.sComm.user_me}>!'),
             self.bkb.make_block_divider(),
             self.bkb.make_block_section(
-                f'{warning.title()} Warning: `*{lowest_temp:.1f}C*` `*{highest_wind:.1f}m/s*`')
+                f'{warning.title()} Warning: *`{lowest_temp:.1f}C`* *`{highest_wind:.1f}m/s`*')
         ]
         self._notify_channel(blocks, channel=self.sComm.hoiatuste_kanal, title='Frost/Freeze Alert!')
 
