@@ -4,10 +4,12 @@
 Handles exceptions while interacting with Selenium objects
 """
 import time
+from typing import List, Callable, Optional, Any, Union
 from random import randint
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.remote.webelement import WebElement
 from kavalkilu import LogWithInflux
 
 
@@ -30,8 +32,8 @@ class ChromeDriver(Chrome):
         '--lang=en_US'
     ]
 
-    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60,
-                 options=None, headless=True):
+    def __init__(self, driver_path: str = '/usr/bin/chromedriver', timeout: float = 60,
+                 options: List[str] = None, headless: bool = True):
         self.driver_path = driver_path
 
         # Add options to Chrome
@@ -68,14 +70,15 @@ class BrowserAction:
     REST_S = 2          # Standard seconds to rest between attempts
     STD_ATTEMPTS = 3    # Standard attempts to make before failing
 
-    def __init__(self, driver_path='/usr/bin/chromedriver',
-                 timeout=60, options=None, headless=True, parent_log: 'Log' = None):
+    def __init__(self, driver_path: str = '/usr/bin/chromedriver',
+                 timeout: float = 60, options: List[str] = None, headless: bool = True, parent_log: 'Log' = None):
         self.driver = ChromeDriver(driver_path, timeout, options, headless)
         self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         self.elem_by_xpath = self.driver.find_element_by_xpath
         self.elems_by_xpath = self.driver.find_elements_by_xpath
 
-    def _do_attempts(self, func, *args, sub_method=None, sub_method_input=None, attempts=3, rest_s=2):
+    def _do_attempts(self, func: Callable, *args, sub_method: str = None, sub_method_input: str = None,
+                     attempts: int = 3, rest_s: float = 2) -> Optional[Any]:
         """Attempts a certain method for n times before gracefully failing"""
 
         for i in range(0, attempts):
@@ -101,7 +104,7 @@ class BrowserAction:
         self.log.info('Shutting down browser.')
         self.driver.quit()
 
-    def get(self, url):
+    def get(self, url: str):
         """
         Navigates browser to url
         Args:
@@ -110,7 +113,7 @@ class BrowserAction:
         self.log.debug(f'Loading url: {url}')
         self.driver.get(url)
 
-    def click(self, xpath, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def click(self, xpath: str, attempts: int = STD_ATTEMPTS, rest_s: float = REST_S):
         """
         Clicks HTML element
         Args:
@@ -120,7 +123,7 @@ class BrowserAction:
         """
         self._do_attempts(self.elem_by_xpath, xpath, sub_method='click', attempts=attempts, rest_s=rest_s)
 
-    def clear(self, xpath, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def clear(self, xpath: str, attempts: int = STD_ATTEMPTS, rest_s: float = REST_S):
         """
         Clears form element of text
         Args:
@@ -130,7 +133,7 @@ class BrowserAction:
         """
         self._do_attempts(self.elem_by_xpath, xpath, sub_method='clear', attempts=attempts, rest_s=rest_s)
 
-    def enter(self, xpath, entry_text, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def enter(self, xpath: str, entry_text: str, attempts: int = STD_ATTEMPTS, rest_s: float = REST_S):
         """
         Enters text into form element
         Args:
@@ -142,7 +145,7 @@ class BrowserAction:
         self._do_attempts(self.elem_by_xpath, xpath, sub_method='send_keys', sub_method_input=entry_text,
                           attempts=attempts, rest_s=rest_s)
 
-    def elem_exists(self, xpath, attempts=1, rest_s=REST_S):
+    def elem_exists(self, xpath: str, attempts: int = 1, rest_s: float = REST_S) -> bool:
         """
         Determines if particular element exists
         Args:
@@ -156,7 +159,8 @@ class BrowserAction:
             return True
         return False
 
-    def get_elem(self, xpath, single=True, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def get_elem(self, xpath: str, single: bool = True, attempts: int = STD_ATTEMPTS, rest_s: float = REST_S) ->\
+            Union[WebElement, List[WebElement]]:
         """
         Returns HTML elements as selenium objects
         Args:
@@ -171,7 +175,8 @@ class BrowserAction:
         else:
             return self._do_attempts(self.elems_by_xpath, xpath, attempts=attempts, rest_s=rest_s)
 
-    def get_text(self, xpath, single=True, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def get_text(self, xpath: str, single: bool = True, attempts: int = STD_ATTEMPTS, rest_s: float = REST_S) ->\
+            Union[str, List[str]]:
         """
         Returns text in element(s)
         Args:
@@ -193,7 +198,7 @@ class BrowserAction:
                     text_list.append(e.text)
             return text_list
 
-    def remove(self, xpath, single=True, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def remove(self, xpath: str, single: bool = True, attempts: int = STD_ATTEMPTS, rest_s: float = REST_S):
         """
         Uses JavaScript commands to remove desired element
         Args:
@@ -216,16 +221,16 @@ class BrowserAction:
                 if e is not None:
                     self.driver.execute_script(script, e)
 
-    def add_style_to_elem(self, elem, css_str):
+    def add_style_to_elem(self, elem: WebElement, css_str: str):
         """Injects CSS into elem style"""
         js = f"arguments[0].setAttribute('style', '{css_str}');"
         self.driver.execute_script(js, elem)
 
-    def click_by_id(self, elem_id):
+    def click_by_id(self, elem_id: float):
         js = f'document.getElementById("{elem_id}").click();'
         self.driver.execute_script(js)
 
-    def rand_wait(self, sleep_range_secs):
+    def rand_wait(self, sleep_range_secs: List[int]):
         """
         Determines sleep time as random number between upper and lower limit,
             then sleeps for that given time. After sleep, moves randomly vertically and horizontally on page
@@ -233,11 +238,13 @@ class BrowserAction:
         Args:
             sleep_range_secs: list, min and max number of seconds to sleep
         """
-
+        sleep_range_secs = sorted(sleep_range_secs)
         if len(sleep_range_secs) == 2:
-            sleep_secs_lower, sleep_secs_higher = tuple(sleep_range_secs)
+            sleep_secs_lower, sleep_secs_higher = sleep_range_secs
+        elif len(sleep_range_secs) > 2:
+            sleep_secs_lower, sleep_secs_higher = sleep_range_secs[0], sleep_range_secs[-1]
         else:
-            raise ValueError('Input for sleep range must be exactly two items')
+            raise ValueError('Input for sleep range must be at least two items')
         sleeptime = randint(sleep_secs_lower, sleep_secs_higher)
         self.log.debug(f'Waiting {sleeptime}s')
         time.sleep(sleeptime)
@@ -245,7 +252,7 @@ class BrowserAction:
         for i in range(4):
             r_x = randint(-20, 20)
             r_y = randint(150, 300)
-            self.scroll_absolute(direction='{},{}'.format(r_x, r_y))
+            self.scroll_absolute(direction=f'{r_x},{r_y}')
 
     def fast_wait(self):
         self.rand_wait(self._fast_wait)
@@ -256,7 +263,7 @@ class BrowserAction:
     def slow_wait(self):
         self.rand_wait(self._slow_wait)
 
-    def scroll_to_element(self, elem, use_selenium_method=True):
+    def scroll_to_element(self, elem: WebElement, use_selenium_method: bool = True):
         """
         Scrolls to get element in view
         Args:
@@ -275,7 +282,7 @@ class BrowserAction:
             """
             self.driver.execute_script(scroll_center_script, elem)
 
-    def scroll_absolute(self, direction='up'):
+    def scroll_absolute(self, direction: str = 'up'):
         """Scrolls all the way up/down or to specific x,y coordinates"""
         if direction == 'up':
             coords = '0, 0'
