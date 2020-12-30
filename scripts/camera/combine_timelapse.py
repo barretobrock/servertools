@@ -1,6 +1,6 @@
 """For joining timelapse shots"""
 import os
-from moviepy.editor import ImageSequenceClip
+from moviepy.editor import ImageClip, concatenate_videoclips
 from kavalkilu import Path, LogWithInflux
 from servertools import SlackComm
 
@@ -17,8 +17,19 @@ for dirpath, _, filenames in os.walk(tl_dir):
 files = []
 # Begin combining shots
 for k, v in fnames.items():
+    if not any([k.startswith(x) for x in ['ac-', 're-']]):
+        continue
+    log.debug(f'Working on {k}. {len(v)} files.')
     full_paths = sorted([os.path.join(tl_dir, *[k, x]) for x in v])
-    clip = ImageSequenceClip(full_paths, fps=30)
+    clips = []
+    for fpath in full_paths:
+        try:
+            clips.append(ImageClip(fpath).set_duration(1))
+        except ValueError:
+            log.debug(f'Error with this path: {fpath}')
+            continue
+    clip = concatenate_videoclips(clips)
+    clip = clip.set_fps(30)
     fpath = os.path.join(tl_dir, f'concat_{k}.mp4')
     clip.write_videofile(fpath)
     files.append(fpath)
@@ -26,4 +37,3 @@ for k, v in fnames.items():
 scom = SlackComm(parent_log=log)
 for file in files:
     scom.st.upload_file('kaamerad', file, os.path.basename(file))
-
