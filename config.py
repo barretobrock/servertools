@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # NOTE: The key value will be the variable name in the bash script
     store_these = {
         'REPO_NAME': REPO_NAME,
-        'REPO_DIR': os.path.abspath(parent_dir),
+        'REPO_DIR': os.path.abspath(parent_dir).replace(os.path.expanduser('~'), '${HOME}'),
         'GIT_URL': GIT_URL,
         'VENV_PATH': VENV_PATH,
         'DEP_LINKS': DEP_LINKS,
