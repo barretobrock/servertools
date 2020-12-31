@@ -29,11 +29,17 @@ for k, v in fnames.items():
             log.debug(f'Error with this path: {fpath}')
             continue
     clip = concatenate_videoclips(clips)
-    clip = clip.set_fps(30)
+    clip = clip.set_fps(30).speedx(30)
     fpath = os.path.join(tl_dir, f'concat_{k}.mp4')
-    clip.write_videofile(fpath)
+    clip.write_videofile(fpath, fps=30)
     files.append(fpath)
 
 scom = SlackComm(parent_log=log)
 for file in files:
     scom.st.upload_file('kaamerad', file, os.path.basename(file))
+
+# Remove files that were concatenated
+for k, v in fnames.items():
+    for x in v:
+        fpath = p.easy_joiner(tl_dir, [k, x])
+        os.remove(fpath)
