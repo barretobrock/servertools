@@ -53,7 +53,7 @@ if len(new_emojis) > 0:
     ]
     for name, e_dict in new_emojis.items():
         blocks.append(
-            scom.bkb.make_block_section(f'*{e_dict["name"].replace(":", "")}*',
+            scom.bkb.make_block_section(f'<{e_dict["link"]}|{e_dict["name"].replace(":", "")}>',
                                         accessory=scom.bkb.make_image_accessory(e_dict['link'], 'emoji'))
         )
     # Iterate through blocks. Slack limits posts by 50 blocks.
