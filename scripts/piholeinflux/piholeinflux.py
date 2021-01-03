@@ -61,7 +61,7 @@ query = f"""
 df = sqll.read_sql(query)
 logg.debug(f'Returned {df.shape[0]} rows of data.')
 # Convert unix back to dt
-df['timestamp'] = df['timestamp'].apply(lambda x: datetools.unix_to_dt(x))
+df['timestamp'] = df['timestamp'].apply(lambda x: datetools.utc_to_local_time(datetools.unix_to_dt(x)))
 # Lookup all known clients
 df['client'] = df['client'].replace(hosts)
 
