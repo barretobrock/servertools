@@ -1,7 +1,8 @@
 import os
 import unittest
 from datetime import datetime
-from servertools import GNUCash
+from kavalkilu import LogWithInflux
+from servertools import GNUCash, InvestmentResearch
 
 
 class TestGNUCash(unittest.TestCase):
@@ -31,6 +32,19 @@ class TestGNUCash(unittest.TestCase):
         month = datetime(2020, 12, 20)
         df = self.gcash.generate_monthly_budget_v_actual(month, 'Q4 2020')
         self.assertTrue(not df.empty)
+
+
+class TestInvestmentResearch(unittest.TestCase):
+    """Test suite for InvestmentResearch"""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.log = LogWithInflux('invest-test')
+        cls.invest = InvestmentResearch(log=cls.log)
+
+    def test_stock_data_collection(self):
+        tickers = ['PG', 'MMM']
+        ratios = self.invest.collect_ratios(tickers)
 
 
 if __name__ == '__main__':

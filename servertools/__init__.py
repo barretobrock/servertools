@@ -3,7 +3,7 @@
 from .camera import Amcrest, Reolink
 from .gsheets import GSheetReader
 from .ecobee import EcoBee
-from .finance import GNUCash
+from .finance import GNUCash, InvestmentResearch
 from .gif import GIF, GIFSlice, GIFTile
 from .hosts import ServerHosts
 from .keys import ServerKeys
