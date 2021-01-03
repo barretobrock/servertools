@@ -8,7 +8,7 @@ User=bobrock
 Group=bobrock
 Type=idle
 Environment=PYTHONUNBUFFERED=true
-ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/scripts/piholeinflux/piholeinflux.py
+ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/scripts/piholeinflux/piholeinflux.py -lvl debug
 Restart=on-failure
 RestartSec=30
 
