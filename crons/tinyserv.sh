@@ -13,6 +13,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 ## Climate
 */10 * * * *            $PY3    $HOME/$SCRIPTS/weather/local_weather.py
 0 * * * *               $PY3    $HOME/$SCRIPTS/weather/forecast_collector.py
+*/10 * * * *            $PY3    $HOME/$SCRIPTS/weather/ha_temp_recorder.py -lvl debug
 
 ## HOME AUTOMATION
 ### Camera
