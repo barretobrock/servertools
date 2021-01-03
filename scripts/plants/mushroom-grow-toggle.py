@@ -9,6 +9,7 @@ end_time = time.time() + INTERVAL_MINS * 60
 logg = LogWithInflux('mushroom-grow-toggle')
 influx = InfluxDBLocal(InfluxDBHomeAuto.TEMPS)
 h = HueBulb('mushroom-plug')
+# TODO: Use HASS instead of Influx to get current values
 
 
 def take_measurement() -> Tuple[Optional[float], Optional[float]]:
@@ -34,10 +35,10 @@ rounds = 0
 while end_time > time.time():
     temp, hum = take_measurement()
     logg.debug(f'Pulled measurements: temp: {temp}, hum: {hum}')
-    if hum > 90 and h.on:
+    if hum > 98 and h.on:
         logg.debug('Humidity reached target threshold. Turning off.')
         h.turn_off()
-    elif hum < 85 and not h.on:
+    elif hum < 89 and not h.on:
         logg.debug('Humidity out of safety zone. Turning on.')
         h.turn_on()
     rounds += 1
