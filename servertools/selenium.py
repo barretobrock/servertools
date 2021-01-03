@@ -6,6 +6,7 @@ Handles exceptions while interacting with Selenium objects
 import time
 from typing import List, Callable, Optional, Any, Union
 from random import randint
+import psutil
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
@@ -73,9 +74,12 @@ class BrowserAction:
     def __init__(self, driver_path: str = '/usr/bin/chromedriver',
                  timeout: float = 60, options: List[str] = None, headless: bool = True, parent_log: 'Log' = None):
         self.driver = ChromeDriver(driver_path, timeout, options, headless)
+        self.pid = self.driver.service.process.pid
+        self.port = self.driver.service.port
         self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         self.elem_by_xpath = self.driver.find_element_by_xpath
         self.elems_by_xpath = self.driver.find_elements_by_xpath
+        self.log.debug(f'Chromedriver started up with pid: {self.pid} receiving on port: {self.port}')
 
     def _do_attempts(self, func: Callable, *args, sub_method: str = None, sub_method_input: str = None,
                      attempts: int = 3, rest_s: float = 2) -> Optional[Any]:
