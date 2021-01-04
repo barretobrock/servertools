@@ -5,18 +5,19 @@ from servertools import SlackComm
 
 
 logg = LogWithInflux('pihole_etl', log_to_db=True)
-sc = SlackComm()
+sc = SlackComm(parent_log=logg)
 hosts = {x['ip']: x['name'] for x in Hosts().get_all_hosts()}
 datetools = DateTools()
 
+FTL_DB_PATH = os.path.join(os.path.expanduser('~'), *['Downloads', 'pihole-FTL.db'])
 FTL_DB_PATH = os.path.join('/etc', *['pihole', 'pihole-FTL.db'])
 sqll = SQLLiteLocal(FTL_DB_PATH)
 
 INTERVAL_MINS = 60
-end = dt.now().replace(second=0, microsecond=0)
+end = dt.now().astimezone().replace(hour=15, second=0, microsecond=0)
 start = (end - timedelta(minutes=INTERVAL_MINS))
-unix_start = datetools.dt_to_unix(start)
-unix_end = datetools.dt_to_unix(end)
+unix_start = datetools.dt_to_unix(start, from_tz='US/Central')
+unix_end = datetools.dt_to_unix(end, from_tz='US/Central')
 
 query = f"""
     SELECT
@@ -61,7 +62,7 @@ query = f"""
 df = sqll.read_sql(query)
 logg.debug(f'Returned {df.shape[0]} rows of data.')
 # Convert unix back to dt
-df['timestamp'] = df['timestamp'].apply(lambda x: datetools.utc_to_local_time(datetools.unix_to_dt(x)))
+df['timestamp'] = df['timestamp'].apply(lambda x: datetools.unix_to_dt(x, to_tz='US/Central'))
 # Lookup all known clients
 df['client'] = df['client'].replace(hosts)
 

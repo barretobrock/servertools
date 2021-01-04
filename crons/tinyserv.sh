@@ -5,7 +5,7 @@ SCRIPTS=extras/servertools/scripts
 PY3=/home/bobrock/venvs/stools/bin/python3
 
 ## PIHOLE
-
+7 * * * *               $PY3    $HOME/$SCRIPTS/piholeinflux/piholeinflux.py -lvl debug
 ## DATA COLLECTION
 ## Network
 */2 * * * *             $PY3    $HOME/$SCRIPTS/net/machine-connected.py
