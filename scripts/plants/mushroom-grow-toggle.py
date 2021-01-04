@@ -35,7 +35,7 @@ rounds = 0
 while end_time > time.time():
     temp, hum = take_measurement()
     logg.debug(f'Pulled measurements: temp: {temp}, hum: {hum}')
-    if hum > 98 and h.on:
+    if hum >= 97 and h.on:
         logg.debug('Humidity reached target threshold. Turning off.')
         h.turn_off()
     elif hum < 89 and not h.on:
