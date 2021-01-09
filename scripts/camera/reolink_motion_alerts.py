@@ -78,8 +78,8 @@ if len(motion_files) > 0:
                                         trim_files=False, prefix=f'{CAMERA}_motion')
     # Draw rectangles over the motion zones
     logg.debug(f'Detecting motion in downloaded video file...')
-    upload, fpath, duration = vt.draw_on_motion(fpath, min_area=500, min_frames=10, threshold=20,
-                                                ref_frame_turnover=20, buffer_s=0.5)
+    upload, fpath, duration = vt.draw_on_motion(fpath, min_area=500, min_frames=20, threshold=20,
+                                                ref_frame_turnover=20, buffer_s=0.2)
     if upload:
         logg.info(f'Uploading vid to channel')
         mins = duration / 60
