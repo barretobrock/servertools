@@ -9,7 +9,6 @@ sc = SlackComm(parent_log=logg)
 hosts = {x['ip']: x['name'] for x in Hosts().get_all_hosts()}
 datetools = DateTools()
 
-FTL_DB_PATH = os.path.join(os.path.expanduser('~'), *['Downloads', 'pihole-FTL.db'])
 FTL_DB_PATH = os.path.join('/etc', *['pihole', 'pihole-FTL.db'])
 sqll = SQLLiteLocal(FTL_DB_PATH)
 
