@@ -1,32 +1,43 @@
 """Methods for financial analysis"""
+import os
 import re
 import requests
+import tempfile
 from datetime import datetime
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Optional
 import pandas as pd
-import numpy as np
 import piecash
+import edgar
 from kavalkilu import DateTools, LogWithInflux, Keys
-from .selenium import BrowserAction
+from .text import XPathExtractor
 
 
 class GNUCash:
     """Communicates with a gnucash file"""
     def __init__(self, fpath: str):
         self.fpath = fpath
+        assert os.path.exists(self.fpath), f"Invalid path: {self.fpath}"
         # Datetool for making it easier to handle dates
         self.dt = DateTools()
 
-    def filter_transactions(self, start: datetime = None, end: datetime = None, account_name: str = None,
-                            account_fullname: str = None, split_type: str = None) -> pd.DataFrame:
+    def filter_transactions(self, start: datetime = None, end: datetime = None,
+                            filter_accounts: Union[str, List[str]] = None, filter_accounts_fullname: str = None,
+                            filter_types: List[str] = None, filter_desc: List[str] = None,
+                            groupby_list: List[str] = None) -> pd.DataFrame:
         """Filters all transactions falling in a certain month
         Args:
             start: start date to filter on
             end: end date to filter on
-            account_name: the name of the account to filter on
-            account_fullname: the full path of the account to filter on
-            split_type: the type of split to filter on (e.g., expense, income, asset, etc...)
+            filter_accounts: the name(s) of the account(s) to filter on
+            filter_accounts_fullname: the full path of the account to filter on
+            filter_types: the type of transaction splits to filter on (e.g., Expenses, Income, Asset, etc...)
+            filter_desc: filter on the descriptions of the transactions
+            groupby_list: list of columns to group by (date, account, desc, cur, etc...)
         """
+        if filter_accounts is not None:
+            if isinstance(filter_accounts, str):
+                filter_accounts = [filter_accounts]
+
         desired_columns = {
             'transaction.post_date': 'date',
             'account.fullname': 'account_fullname',
@@ -37,26 +48,35 @@ class GNUCash:
         }
         with piecash.open_book(self.fpath, open_if_lock=True, readonly=True) as mybook:
             df = mybook.splits_df()
-            df = df.sort_values(['transaction.post_date', 'transaction.guid'])
-            df = df[desired_columns.keys()].reset_index(drop=True).rename(columns=desired_columns)
-            # Extract the split type and actual account name from the full account name
-            df['type'] = df['account_fullname'].str.split(':').apply(lambda x: x[0])
-            df['account'] = df['account_fullname'].str.split(':').apply(lambda x: x[-1])
-            # Handle (messy) filtering
-            if start is not None:
-                df = df[df['date'] >= start.date()]
-            if end is not None:
-                df = df[df['date'] <= end.date()]
-            if account_name is not None:
-                df = df[df['account'].str.lower() == account_name.lower()]
-            if account_fullname is not None:
-                df = df[df['account_fullname'].str.lower() == account_fullname.lower()]
-            if split_type is not None:
-                df = df[df['type'].str.lower() == split_type.lower()]
-            # Convert amounts to float
-            df['amount'] = df['amount'].astype(float)
+        df = df.sort_values(['transaction.post_date', 'transaction.guid'])
+        df = df[desired_columns.keys()].reset_index(drop=True).rename(columns=desired_columns)
+        # Extract the split type and actual account name from the full account name
+        df['type'] = df['account_fullname'].str.split(':').apply(lambda x: x[0])
+        df['account'] = df['account_fullname'].str.split(':').apply(lambda x: x[-1])
+        # Handle (messy) filtering
+        if start is not None:
+            df = df[df['date'] >= start.date()]
+        if end is not None:
+            df = df[df['date'] <= end.date()]
+        if filter_accounts is not None:
+            df = df[df['account'].isin(filter_accounts)]
+        if filter_accounts_fullname is not None:
+            df = df[df['account_fullname'].isin(filter_accounts_fullname)]
+        if filter_types is not None:
+            df = df[df['type'].isin(filter_types)]
+        if filter_desc is not None:
+            df = df[df['desc'].isin(filter_desc)]
+        # Convert amounts to float
+        df['amount'] = df['amount'].astype(float)
+        # Set final column order
+        final_cols = ['date', 'account_fullname', 'type', 'account', 'desc', 'memo', 'amount', 'cur']
+        df = df[final_cols].reset_index(drop=True)
 
-        return df.reset_index(drop=True)
+        if groupby_list is not None:
+            # Perform grouping before returning
+            df = df.groupby(groupby_list, as_index=False).sum()
+
+        return df
 
     def get_budget_by_name(self, budget_name: str, budget_month: datetime) -> pd.DataFrame:
         """Fetches the budget items for the budget name for the given month"""
@@ -84,7 +104,8 @@ class GNUCash:
         df = df[df['month'] == budget_month].sort_values('account_fullname')
         return df
 
-    def generate_monthly_budget_v_actual(self, month: datetime, budget_name: str) -> pd.DataFrame:
+    def generate_monthly_budget_v_actual(self, month: datetime, budget_name: str,
+                                         filter_types: List[str] = None) -> pd.DataFrame:
         """Generates a monthly budget versus actual comparison"""
         start = month.replace(day=1)
         end = self.dt.last_day_of_month(month)
@@ -102,6 +123,8 @@ class GNUCash:
         merged = pd.merge(actual, budget, on=['account_fullname', 'account', 'type', 'cur'], how='left')
         # Calculate differences column
         merged['diff'] = merged['actual'] - merged['budget']
+        if filter_types is not None:
+            merged = merged[merged['type'].isin(filter_types)]
         return merged
 
     def generate_daily_account_summary(self, start: datetime, end: datetime, account: str):
@@ -154,209 +177,167 @@ class Ameritrade:
         return Stock(stock_resp.get(ticker), fund_resp.get(ticker))
 
 
-class InvestmentResearch(Ameritrade):
-    def __init__(self, log: LogWithInflux):
-        super().__init__()
-        self.log = log
-        self.ba = None
+class EdgarFinStatement:
+    """Methods associated with the collection and processing
+    of financial statement info from EDGAR"""
+    def __init__(self, url_to_extract: str, stmt_contains_txt: str):
+        """
+        Args:
+            url_to_extract: the url from which to build an XPath tree
+        """
+        self.xpe = XPathExtractor(url_to_extract)
+        # Xpath extract the statement section
+        self.section = self.get_statement_table(self.xpe, stmt_contains_txt)
 
-    def _initialize_browser(self):
-        """Initializes the Selenium browser"""
-        self.ba = BrowserAction(headless=True, parent_log=self.log)
+    @staticmethod
+    def lowercase_translate() -> str:
+        """Casts uppercase text in an element to lowercase"""
+        return f"translate(.,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"
 
-    def collect_ratios(self, tickers: Union[str, List[str]]) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Handles all the processes for collecting financials and other info"""
-        if self.ba is None:
-            self._initialize_browser()
+    def get_line_item(self, line_contains: str, line_after: bool = False) -> Optional[float]:
+        """Returns the first numerical line item from the left matching the string provided"""
+        # Generate xpath
+        xpth_str = f'./tr[./td/div/font[contains({self.lowercase_translate()}, "{line_contains.lower()}")]]'
+        line = self.xpe.xpath(xpth_str, obj=self.section, single=True)
+        if line_after:
+            line = line.getnext()
+        tds = self.xpe.xpath('./td[div/font]', obj=line)
+        for td in tds:
+            item = self.xpe.xpath('./div/font', obj=td, single=True).text
+            if item is not None:
+                if re.match(r'[\d,.\s]+', item) is not None:
+                    # Get only numeric
+                    item = ''.join(re.findall(r'[\d.]+', item))
+                    try:
+                        return float(item)
+                    except ValueError:
+                        continue
+        return None
+
+    @staticmethod
+    def get_statement_table(xpe: XPathExtractor, contains_text: str) -> '_Element':
+        """Returns a table that contains statement info"""
+        table_xpath = f'//*[font[re:match(text(), "{contains_text}")]]/following::div/div/table'
+
+        return xpe.xpath_with_regex(table_xpath, single=True)
+
+
+class EdgarCollector:
+    """Handles the entire process of collecting SEC filing data and processing that into financial ratios"""
+    base_url = 'https://www.sec.gov'
+
+    def __init__(self, start_year: float = 2017, parent_log: LogWithInflux = None):
+        self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
+        # Set temp dir for downloading the edgar filings
+        self.tmp_dir = os.path.join(tempfile.gettempdir(), 'edgar')
+        # Get ticker to CIK mapping
+        self.logg.debug('Downloading ticket to CIK mapping...')
+        self.t2cik_df = self.get_ticker_to_cik_map()
+        # Download EDGAR indexes and retrieve the filepaths associated with them
+        self.logg.debug('Downloading indexes (this may take ~2 mins)...')
+        self.edgar_fpaths = self._download_indexes(start_year)
+
+    @staticmethod
+    def get_ticker_to_cik_map() -> pd.DataFrame:
+        """Collects the mapping of stock ticker to CIK"""
+        t2cik_df = pd.read_csv('https://www.sec.gov/include/ticker.txt', sep='\t', header=None)
+        t2cik_df.columns = ['tick', 'cik']
+        return t2cik_df
+
+    def _download_indexes(self, since_year: float) -> List[str]:
+        """Downloads company indexes from Edgar into temporary directory"""
+        # Begin download
+        edgar.download_index(self.tmp_dir, since_year=since_year)
+        # Retrieve the file paths downloaded
+        fpaths = []
+        for a, b, fnames in os.walk(self.tmp_dir):
+            fpaths = [os.path.join(self.tmp_dir, f) for f in fnames]
+            break
+        self.logg.debug(f'Collected {len(fpaths)} files...')
+        return sorted(fpaths)
+
+    def get_data_for_stock_tickers(self, tickers: Union[str, List[str]]) -> pd.DataFrame:
+        """Collects the quarterly financial ratios for a given stock ticker"""
         if isinstance(tickers, str):
             tickers = [tickers]
 
-        ratios_df = pd.DataFrame()
-        summary_df = pd.DataFrame()
-        for ticker in tickers:
-            self.log.debug(f'Beginning work on {ticker}')
-            # Get current stock info
-            current_stock = self.get_quote(ticker)
-            # Get income statements / balance sheet info for the past few quarters
-            self.log.debug('Working on Income Statement')
-            income_stmt = self.get_income_statement_history(ticker, is_quarterly=True)
-            self.log.debug('Working on Balance Sheet')
-            balance_sheet = self.get_balance_sheet_history(ticker, is_quarterly=True)
-            # Combine IS and BS
-            self.log.debug('Combining info into ratios')
-            ratio_df = self.apply_fundamental_ratios(income_stmt, balance_sheet)
-            ratio_df['ticker'] = ticker
-            ratios_df = ratios_df.append(ratio_df)
-            # Summarize the ratios
-            sdf = pd.DataFrame({'ticker': ticker}, [0])
-            for col in ratio_df.columns.tolist()[:-1]:
-                x = np.arange(0, len(ratio_df))
-                y = ratio_df[col]
-                X = x - x.mean()
-                Y = y - y.mean()
-                slope = (X.dot(Y)) / (X.dot(X))
-                sdf[f'{col}_M'] = slope
-                sdf[f'{col}_P50'] = ratio_df[col].median()
-                sdf[f'{col}_max'] = ratio_df[col].max()
-            summary_df = summary_df.append(sdf)
+        stocks_df = pd.DataFrame({'tick': list(map(str.lower, tickers))})
+        # Merge stocks on cik
+        stocks_df = stocks_df.merge(self.t2cik_df, how='left', on='tick')
 
-        if self.ba is not None:
-            # Close the broswer session
-            self.ba.tear_down()
-            self.ba = None
+        ratio_df = pd.DataFrame()
+        # Capture filing locations for each quarter for each stock
+        for i, fpath in enumerate(sorted(self.edgar_fpaths)):
+            self.logg.debug(f'Working on file {i + 1} of {len(self.edgar_fpaths)}')
+            # Parse the quarter
+            year, qtr = os.path.split(fpath)[1].split('.')[0].split('-')
+            self.logg.debug(f'Parsed: {qtr}-{year}')
+            df = pd.read_csv(fpath, sep='|', header=None)
+            df.columns = ['cik', 'company_name', 'form', 'filing_date', 'txt_file', 'html_file']
+            # Filter by CIK and on either 10-K (annual) or 10-Q (quarterly) reports
+            df = df.loc[df.cik.isin(stocks_df.cik) & df.form.isin(['10-Q', '10-K'])]
+            self.logg.debug(f'Matched {df.shape[0]} rows of data')
+            for idx, row in df.iterrows():
+                # Grab the HTML file - this is the file list
+                url = f'{self.base_url}/Archives/{row["html_file"]}'
+                xpe = XPathExtractor(url)
+                # Grab the link to the 10-* file
+                form_type = row['form']
+                form_row = xpe.xpath(f'//table[@class="tableFile"]/tr[td[text()="{form_type}"]]', single=True)
+                form_url = xpe.xpath('./td/a', obj=form_row, single=True).get('href')
 
-        return ratios_df, summary_df
+                # Grab the 10-* file data
+                complete_url = f'{self.base_url}{form_url}'
 
-    def _load_stmt_page(self, url: str, is_quarterly: bool = True):
-        """Shared method for loading the IS/BS statement pages"""
-        self.ba.get(url)
-        self.ba.fast_wait()
-        if is_quarterly:
-            # Click the button to load quarterly info
-            qt_btn = self.ba.get_elem(
-                '//section[@data-test="qsp-financial"]/div/div/button[div/span[contains(., "Quarterly")]]')
-            self.ba.scroll_to_element(qt_btn)
-            qt_btn.click()
-            self.ba.fast_wait()
+                # Work on SOps (this sets a point to look 'after')
+                stmt_ops = EdgarFinStatement(complete_url, 'STATEMENTS? OF OPERATIONS')
+                net_sales = stmt_ops.get_line_item('net sales')
+                cogs = stmt_ops.get_line_item('cost of sales')
+                op_income = stmt_ops.get_line_item('operating income')
+                net_income = stmt_ops.get_line_item('net income')
+                eps = stmt_ops.get_line_item('earnings per share', line_after=True)
+                shares = stmt_ops.get_line_item('shares used in computing earnings', line_after=True)
 
-    def _grab_tbl_headers(self) -> List[str]:
-        """Returns the headers of the table"""
-        hdr = self.ba.get_elem('//div[@class="D(tbhg)"]/div[contains(@class, "D(tbr)")]')
-        dates = []
-        for hd in hdr.find_elements_by_xpath('.//div/span'):
-            if 'breakdown' not in hd.text.lower():
-                dates.append(hd.text)
-        return dates
+                # Work on Balance Sheet
+                stmt_bs = EdgarFinStatement(complete_url, 'CONSOLIDATED BALANCE SHEETS')
+                current_assets = stmt_bs.get_line_item('total current assets')
+                intangible_assets = stmt_bs.get_line_item('intangible assets')
+                total_assets = stmt_bs.get_line_item('total assets')
+                current_liabilities = stmt_bs.get_line_item('total current liabilities')
+                total_liabilities = stmt_bs.get_line_item('total liabilities')
+                common_stock_eq = stmt_bs.get_line_item('common stock')
+                total_shareholders_equity = stmt_bs.get_line_item('total shareholders')
+                net_tangible_assets = total_assets - intangible_assets - total_liabilities
 
-    def _grab_desired_rows(self, desired_rows: List[str]) -> Dict[str, List[float]]:
-        """Returns the rows that match desired_rows (lowercase enforced)"""
-        rows = self.ba.get_elem('.//div[@data-test="fin-row"]', single=False)
-        item_dict = {}
-        for row in rows:
-            # Get title row
-            title = row.find_element_by_xpath('.//div/div[@title]').text
-            if title.lower() in desired_rows:
-                # Get the data
-                raw_data = row.find_elements_by_xpath('.//div/div[@data-test="fin-col"]/span')
-                processed_data = []
-                for cell in raw_data:
-                    if cell.text.strip() != '-':
-                        value = float(''.join(re.findall(r'\d+\.?', cell.text)))
-                    else:
-                        value = 0
-                    processed_data.append(value)
-                item_dict[title] = processed_data
-        return item_dict
+                # Work on Cash Flow (SCF)
+                stmt_cf = EdgarFinStatement(complete_url, 'STATEMENTS OF CASH FLOWS')
+                dep_and_amort = stmt_cf.get_line_item('depreciation and amortization')
+                ebitda = op_income + dep_and_amort
 
-    @staticmethod
-    def _process_stmt_data(date_col: List[str], data_dict: Dict[str, List[float]]) -> pd.DataFrame:
-        """Processes the statement info collected into a dataframe"""
-        df = pd.DataFrame(columns=date_col)
-        for k, v in data_dict.items():
-            if len(v) > len(date_col):
-                # Sometimes lower, hidden items are included, but horizontal order of the row is preserved.
-                v = v[:len(date_col)]
-            elif len(v) < len(date_col):
-                # If the data we've scraped doesn't match the length of the date columns,
-                # let's make a (possibly foolish) assumption that the newest (TTM) column has the blank info in it
-                # and thus, we'll insert a NULL value at the beginning of this list
-                v = [None] + v
-            df.loc[k] = v
-        # Return processed dataframe, remove TTM column if it exists, as the BS likely won't have it
-        return df.drop('TTM', errors='ignore', axis=1)
+                # Ratios
+                asset_turnover = net_sales / net_tangible_assets
+                profit_margin = net_income / net_sales
+                debt_to_ebitda = total_liabilities / ebitda
+                debt_to_equity = total_liabilities / total_shareholders_equity
+                roa = net_income / total_assets
+                roe = net_income / total_shareholders_equity
+                bvps = total_shareholders_equity / shares
 
-    def get_income_statement_history(self, ticker: str, is_quarterly: bool = True) -> pd.DataFrame:
-        """Collects income statement info"""
-        if self.ba is None:
-            self._initialize_browser()
-        url = f'https://finance.yahoo.com/quote/{ticker}/financials?p={ticker}'
-        self._load_stmt_page(url, is_quarterly)
-        # Headers
-        dates = self._grab_tbl_headers()
-        # Set the desired rows to capture
-        desired_rows = [
-            'total revenue',
-            'cost of revenue',
-            'gross profit',
-            'operating income',
-            'net income common stockholders',
-            'total expenses',
-            'normalized ebitda',
-            'basic eps'
-        ]
-        # Line items
-        item_dict = self._grab_desired_rows(desired_rows)
-        # Make the IncomeStmt dataframe
-        return self._process_stmt_data(dates, item_dict)
+                # Apply ratios to dataframe
+                ratio_df = ratio_df.append({
+                    'year': year,
+                    'quarter': qtr,
+                    'cik': row['cik'],
+                    'source': row['form'],
+                    'ato': asset_turnover,
+                    'pm': profit_margin,
+                    'd2ebitda': debt_to_ebitda,
+                    'd2e': debt_to_equity,
+                    'roa': roa,
+                    'roe': roe,
+                    'bvps': bvps
+                }, ignore_index=True)
 
-    def get_balance_sheet_history(self, ticker: str, is_quarterly: bool = True) -> pd.DataFrame:
-        """Collects income statement info"""
-        url = f'https://finance.yahoo.com/quote/{ticker}/balance-sheet?p={ticker}'
-        self._load_stmt_page(url, is_quarterly)
-        # Headers
-        dates = self._grab_tbl_headers()
-        # Set the desired rows to capture
-        desired_rows = [
-            'total assets',
-            'total liabilities net minority interest',
-            'total equity gross minority interest',
-            'common stock equity',
-            'net tangible assets',
-            'tangible book value',
-            'ordinary shares number',
-            'total debt'
-        ]
-        # Line items
-        item_dict = self._grab_desired_rows(desired_rows)
-        # Make the dataframe
-        return self._process_stmt_data(dates, item_dict)
-
-    @staticmethod
-    def apply_fundamental_ratios(is_df: pd.DataFrame, bs_df: pd.DataFrame) -> pd.DataFrame:
-        """Takes in dataframe with IS and BS info, outputs a dataframe of fundamental analysis ratios
-            along with a sentiment analysis
-
-            Ratios: https://www.wallstreetmojo.com/financial-ratios/
-        """
-        df = pd.concat([is_df, bs_df]).drop('TTM', errors='ignore', axis=1)
-        # create mapping of financial items to an easier-to-handle style
-        fin_mapping = {
-            'Total Revenue': 'REV',
-            'Cost of Revenue': 'COGS',
-            'Gross Profit': 'GP',
-            'Operating Income': 'OI',
-            'Net Income Common Stockholders': 'NI',
-            'Total Expenses': 'TEX',
-            'Normalized EBITDA': 'EBITDA',
-            'Basic EPS': 'EPS',
-            'Total Assets': 'TA',
-            'Total Liabilities Net Minority Interest': 'TL',
-            'Total Equity Gross Minority Interest': 'TEQ',
-            'Common Stock Equity': 'CSEQ',
-            'Net Tangible Assets': 'NTA',
-            'Total Debt': 'TD',
-            'Tangible Book Value': 'BV',
-            'Ordinary Shares Number': 'SH'
-        }
-        df = df.rename(index=fin_mapping)
-        # Begin building out financial ratios
-        ratios = pd.DataFrame()
-        ratios['ATO'] = df.loc['REV'] / df.loc['NTA']  # Asset Turnover
-        ratios['PM'] = df.loc['NI'] / df.loc['REV']  # Profit Margin
-        ratios['D2EBITDA'] = df.loc['TL'] / df.loc['EBITDA']  # Debt to EBITDA
-        ratios['D2E'] = df.loc['TL'] / df.loc['CSEQ']  # Debt to Equity
-        ratios['ROA'] = df.loc['NI'] / df.loc['TA']  # Return on Assets
-        ratios['ROE'] = df.loc['NI'] / df.loc['CSEQ']  # Return on Equity
-        ratios['BVPS'] = df.loc['BV'] / df.loc['SH']  # Book Value per Share
-        ratios['EPS'] = df.loc['EPS']
-        # 'Flip' the rows such that the table presents in chronological order
-        ratios = ratios.sort_index()
-        return ratios
-
-    def get_ratings(self, ticker: str) -> float:
-        """Gets the current analyst buy rating"""
-        url = f'https://finance.yahoo.com/quote/D/analysis?p={ticker}'
-        self.ba.get(url)
-        self.ba.fast_wait()
-        rating = self.ba.get_elem('//div[@data-test="rec-rating-txt"]').text
-        return float(rating)
+        # Merge the financial info back in with the stocks
+        stocks_df = stocks_df.merge(ratio_df, how='left', on='cik')
+        return stocks_df
