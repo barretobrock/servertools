@@ -113,7 +113,6 @@ class MarkovModel:
         except LookupError:
             nltk.download('averaged_perceptron_tagger')
 
-
     def save_to_disk(self, path: str):
         """Save the Markov model to disk"""
         with open(path, 'w') as f:
@@ -159,27 +158,34 @@ class XPathExtractor:
             Union[str, _Element, List[_Element]]:
         """Retrieves element(s) matching the given xpath"""
         method = self.tree.xpath if obj is None else obj.xpath
-        elem = None
         elems = method(xpath)
-        if single:
-            elem = elems[0]
-
-        if get_text:
-            return ''.join([x for e in elems for x in e.itertext()])
-        else:
-            return elem if single else elems
+        return self._process_xpath_elems(elems, single, get_text)
 
     @staticmethod
     def class_contains(cls: str) -> str:
         return f'(@class, "{cls}"'
 
-    def xpath_with_regex(self, xpath: str, obj: _Element = None) -> Union[_Element, List[_Element]]:
+    @staticmethod
+    def _process_xpath_elems(elems: List[_Element], single: bool, get_text: bool) -> \
+            Union[str, _Element, List[_Element]]:
+        if single:
+            elems = [elems[0]]
+
+        if get_text:
+            return ''.join([x for e in elems for x in e.itertext()])
+        else:
+            return elems[0] if single else elems
+
+    def xpath_with_regex(self, xpath: str, obj: _Element = None, single: bool = False, get_text: bool = False) ->\
+            Union[str, _Element, List[_Element]]:
         """Leverages xpath with regex
         Example:
             >>> self.xpath_with_regex('//div[re:match(@class, "w?ord.*")]/h1')
         """
         method = self.tree.xpath if obj is None else obj.xpath
-        return method(xpath, namespaces={"re": "http://exslt.org/regular-expressions"})
+        elems = method(xpath, namespaces={"re": "http://exslt.org/regular-expressions"})
+        elems = self._process_xpath_elems(elems, single, get_text)
+        return elems
 
 
 class TextCleaner:
