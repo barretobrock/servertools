@@ -14,7 +14,7 @@ scom = SlackComm('viktor')
 jpyusd = 1/104.48
 units = 100
 strike_price = 4542
-msg = f'{units:,.0f} shares are now worth *`{(price - strike_price) * jpyusd * units:+,.2f}`* USD' \
+msg = f'{units:,.0f} shares of `{stonk}` are now worth *`{(price - strike_price) * jpyusd * units:+,.2f}`* USD' \
       f' more than when you got it'
 
 blocks = [
