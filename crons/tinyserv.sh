@@ -32,6 +32,7 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 17 10 * * *             $PY3    $HOME/$SCRIPTS/weather/moon_phase.py
 27 9 * * *              $PY3    $HOME/$SCRIPTS/slackbot/emoji_scraper.py -lvl debug
 27 8 * * *              $PY3    $HOME/$SCRIPTS/slackbot/word-of-the-day.py -lvl debug
+0 9 * * 0-5             $PY3    $HOME/$SCRIPTS/finance/stonks-ticker.py
 
 ## SELENIUM
 ### Apt price scraping
