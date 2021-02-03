@@ -12,7 +12,7 @@ pct_change = yf.get_current_percent_change()
 scom = SlackComm('viktor')
 
 jpyusd = 1/104.48
-units = 1000
+units = 100
 strike_price = 4542
 msg = f'{units:,.0f} shares is now worth *`{(price - strike_price) * jpyusd * units:+,.0f}`* USD' \
       f' more than when you got it'
