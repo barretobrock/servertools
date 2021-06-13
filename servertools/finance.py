@@ -53,6 +53,8 @@ class GNUCash:
         # Extract the split type and actual account name from the full account name
         df['type'] = df['account_fullname'].str.split(':').apply(lambda x: x[0])
         df['account'] = df['account_fullname'].str.split(':').apply(lambda x: x[-1])
+        # Get the 1st account name after the account type
+        df['parent_account'] = df['account_fullname'].str.split(':').apply(lambda x: x[1])
         # Handle (messy) filtering
         if start is not None:
             df = df[df['date'] >= start.date()]

@@ -1,9 +1,12 @@
+import os
+from typing import Dict
 from pykeepass import PyKeePass
 from pykeepass.entry import Entry
 from kavalkilu import Path
 
 
 p = Path()
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 def get_secret_file(fname: str) -> str:
@@ -13,6 +16,17 @@ def get_secret_file(fname: str) -> str:
         raise FileNotFoundError(f'File at \'{secret_path}\' does not exist.')
     with open(secret_path) as f:
         return f.read().strip()
+
+
+def read_props() -> Dict[str, str]:
+    props = {}
+    with open(os.path.join(ROOT_DIR, 'secretprops.properties'), 'r') as f:
+        contents = f.read().split('\n')
+        for item in contents:
+            if item != '':
+                key, value = item.split('=', 1)
+                props[key] = value.strip()
+    return props
 
 
 class Secrets:

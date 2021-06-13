@@ -11,13 +11,14 @@ from .light import HueBulb, HueSensor, HueBridge
 from .message import Email
 from .openwrt import OpenWRT
 from .roku import RokuTV
-from .secrets import Secrets, get_secret_file
+from .secrets import Secrets, get_secret_file, read_props, ROOT_DIR
 from .selenium import ChromeDriver, BrowserAction
 from .slack_communicator import SlackComm
 from .text import MarkovModel, XPathExtractor, TextCleaner, TextHelper
 from .video import VidTools
 from .weather import OpenWeather, OWMLocation, YrNoWeather, YRNOLocation, \
     NWSAlert, NWSAlertZone, SlackWeatherNotification, NWSForecast, NWSForecastZone
+
 
 from ._version import get_versions
 __version__ = get_versions()['version']

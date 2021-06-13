@@ -1,3 +1,4 @@
+secretprops.properties
 # Maybe keep development files out?
 development
 *_test.py
