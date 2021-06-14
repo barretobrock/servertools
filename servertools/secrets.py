@@ -20,7 +20,7 @@ def get_secret_file(fname: str) -> str:
 
 def read_props() -> Dict[str, str]:
     props = {}
-    with open(os.path.join(ROOT_DIR, 'secretprops.properties'), 'r') as f:
+    with open(os.path.join(p.keys_dir, 'SECRETPROP'), 'r') as f:
         contents = f.read().split('\n')
         for item in contents:
             if item != '':
