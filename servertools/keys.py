@@ -11,12 +11,14 @@ class ServerKeys:
     def load_keys(self) -> List[dict]:
         """Collect all stored keys"""
 
+        fileext_deny_list = ['.kdbx']
         key_list = []
         # Iterate through list of files in directory
         for dirpath, dirnames, filenames in os.walk(self.key_dir):
             for file in filenames:
                 filepath = os.path.join(dirpath, file)
-                if os.path.isfile(filepath) and 'hidden' not in file:
+                fileext = os.path.splitext(filepath)[-1]
+                if os.path.isfile(filepath) and 'hidden' not in file and fileext not in fileext_deny_list:
                     with open(filepath, 'r') as f:
                         txt = f.read()
                         try:
