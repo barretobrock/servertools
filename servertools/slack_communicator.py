@@ -3,13 +3,11 @@
 """Sends messages to Slack"""
 from slacktools import SlackTools, BlockKitBuilder, SecretStore
 from kavalkilu import LogWithInflux
-from .secrets import read_props
 
 
 class SlackComm:
     def __init__(self, bot: str = 'sasha', parent_log: LogWithInflux = None):
-        creds = read_props()
-        credstore = SecretStore('secretprops.kdbx', creds['secretprops_secret'])
+        credstore = SecretStore('secretprops.kdbx')
         self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
         self.st = SlackTools(credstore=credstore, parent_log=self.log, slack_cred_name=bot)
         self.bkb = BlockKitBuilder()
