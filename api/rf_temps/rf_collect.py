@@ -38,6 +38,8 @@ other_mappings = {
 
 }
 
+unknown_devices = {}
+
 # Map the names of the variables from the various sensors to what's acceptable in the db
 possible_measurements = {
     'temperature_C': 'temp',
@@ -71,6 +73,7 @@ interval = interval.replace(minute=replace_mins, second=0, microsecond=0)
 split_s = 300   # Data packet to influx interval
 logg.debug(f'Data packets sent to Influx every {split_s / 60} mins.')
 data_df = pd.DataFrame()
+last_dt = datetime.now().date()     # For reporting daily unknown devices
 
 logg.debug('Beginning loop!')
 while not killer.kill_now:
@@ -124,6 +127,7 @@ while not killer.kill_now:
         else:
             logg.info(f'Unknown device found: {dev_model}: ({dev_id})\n'
                       f'{json.dumps(data, indent=2)}')
+            unknown_devices[dev_id] = data
 
     if (datetime.now() - interval).total_seconds() > split_s:
         # Gone over the time limit. Try to log all the non-duplicate info to database
@@ -138,6 +142,14 @@ while not killer.kill_now:
         logg.debug('Resetting interval and dataframe.')
         interval = datetime.now()
         data_df = pd.DataFrame()
+
+    if last_dt != datetime.now().date() and len(unknown_devices) > 0:
+        # Report on found unknown devices
+        report_text = "\n\n".join([f'*{k}*\n{json.dumps(v, indent=2)}' for k, v in unknown_devices.items()])
+        sc.st.send_message(sc.kodu_kanal, message=f'Unknown devices discovered:\n\n{report_text}')
+        last_dt = datetime.now().date()
+        unknown_devices = {}
+
 
 logg.debug('Collection ended. Closing Influx connection')
 influx.close()
