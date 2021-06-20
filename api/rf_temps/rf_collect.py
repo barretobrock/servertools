@@ -15,7 +15,7 @@ from kavalkilu import InfluxDBLocal, InfluxDBHomeAuto, LogWithInflux, \
 from servertools import SlackComm
 
 
-logg = LogWithInflux('rf_temp')
+logg = LogWithInflux('rf_temp', log_dir='rf')
 sc = SlackComm(parent_log=logg)
 UDP_IP = Hosts().get_ip_from_host(HOME_SERVER_HOSTNAME)
 UDP_PORT = 1433
@@ -36,8 +36,7 @@ mappings = {
 }
 # Other items that aren't sensors
 other_mappings = {
-    '0D65F165': {'name': 'gdo'},
-    1922: {'name': 'doorbell'},
+
 }
 
 # Map the names of the variables from the various sensors to what's acceptable in the db
@@ -94,7 +93,10 @@ while not killer.kill_now:
     # Begin processing the data
     if data is not None:
         # Begin extraction process
-        if data['id'] in mappings.keys():
+        dev_id = data.get('id')
+        dev_model = data.get('model')
+        logg.debug(f'Receiving from device: {dev_model} ({dev_id})')
+        if dev_id in mappings.keys():
             # Device is known sensor... record data
             measurements = {}
             for k, v in possible_measurements.items():
@@ -103,22 +105,23 @@ while not killer.kill_now:
             if len(measurements) > 0:
                 # Write to dataframe
                 measurements.update({
-                    'location': mappings[data['id']]['name'],
+                    'location': mappings[dev_id]['name'],
                     'timestamp': data['time']
                 })
                 data_df = data_df.append(pd.DataFrame(measurements, index=[0]))
                 logg.debug('Successfully recorded object to dataframe..')
-        elif data['id'] in other_mappings.keys():
+        elif dev_id in other_mappings.keys():
+            pass
             # Handle signal another way
-            item = other_mappings.get(data['id']).get('name')
-            if item == 'gdo':
-                # Routines for notifying gdo was used
-                sc.st.send_message(sc.kodu_kanal, 'Someone used the garage door remote!')
-            elif item == 'doorbell':
-                # Routines for notifying doorbell was used
-                HAHelper().call_webhook('doorbell_pressed')
+            # item = other_mappings.get(data['id']).get('name')
+            # if item == 'gdo':
+            #     # Routines for notifying gdo was used
+            #     sc.st.send_message(sc.kodu_kanal, 'Someone used the garage door remote!')
+            # elif item == 'doorbell':
+            #     # Routines for notifying doorbell was used
+            #     HAHelper().call_webhook('doorbell_pressed')
         else:
-            logg.info(f'Unknown device found: {data["model"]}: ({data["id"]})\n'
+            logg.info(f'Unknown device found: {dev_model}: ({dev_id})\n'
                       f'{json.dumps(data, indent=2)}')
 
     if (datetime.now() - interval).total_seconds() > split_s:
