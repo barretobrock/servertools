@@ -22,17 +22,16 @@ UDP_PORT = 1433
 
 # device id to device-specific data mapping
 mappings = {
-    210: {'name': 'neighbor-porch'},
-    3092: {'name': 'ylemine-r6du'},
+    3092: {'name': 'magamistuba'},
     5252: {'name': 'elutuba'},
     6853: {'name': 'kontor-wc'},
-    8416: {'name': 'alumine-r6du'},
+    8416: {'name': 'r6du-l22ne'},
     9459: {'name': 'freezer'},
     9533: {'name': 'kontor'},
     10246: {'name': 'v2lisuks'},
     12476: {'name': 'suur-wc'},
     14539: {'name': 'fridge'},
-    15227: {'name': 'mushroom-station'}
+    15227: {'name': 'r6du-ida'}
 }
 # Other items that aren't sensors
 other_mappings = {
