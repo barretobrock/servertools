@@ -97,6 +97,8 @@ while not killer.kill_now:
         dev_model = data.get('model')
         logg.debug(f'Receiving from device: {dev_model} ({dev_id})')
         if dev_id in mappings.keys():
+            loc = mappings[dev_id]['name']
+            logg.debug(f'Device identified. Location: {loc}')
             # Device is known sensor... record data
             measurements = {}
             for k, v in possible_measurements.items():
@@ -105,7 +107,7 @@ while not killer.kill_now:
             if len(measurements) > 0:
                 # Write to dataframe
                 measurements.update({
-                    'location': mappings[dev_id]['name'],
+                    'location': loc,
                     'timestamp': data['time']
                 })
                 data_df = data_df.append(pd.DataFrame(measurements, index=[0]))
