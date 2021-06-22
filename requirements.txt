@@ -32,7 +32,7 @@ selenium==3.141.0
 servertools
 setuptools
 slacktools
-speedtest-cli
+speedtest-cli>2.1.2
 SQLAlchemy
 versioneer==0.19
 yahoofinancials==1.6
