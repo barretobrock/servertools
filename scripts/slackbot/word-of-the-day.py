@@ -74,7 +74,7 @@ def extract_otd(url: str, is_wotd: bool = False) -> List[dict]:
 
     return [
         bkb.make_context_section([
-            f'{title_section.title()} of the Day: *`{word}`* _`{pronunc}`_',
+            f'<{url}|{title_section.title()} of the Day>: *`{word}`* _`{pronunc}`_',
             f'{pos}, _`{definition}`_'
         ]),
         bkb.make_block_divider(),
