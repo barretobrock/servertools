@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %} Home - {% endblock %}
+{% block content %}
+    <h2>KeePass Entry Tagger</h2>
+    <a href="/load">Load File</a>
+    {% from '_form_helper.html' import render_field %}
+    <form method="post">
+        <dl>
+            {{ render_field(form.select) }}
+            {{ render_field(form.search) }}
+        </dl>
+        <input type="submit" value="search">
+    </form>
+{% endblock %}

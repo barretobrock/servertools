@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %} Home - {% endblock %}
+{% block content %}
+    <h2>Search Results</h2>
+    <ul>
+        {% for result in results %}
+            <li>
+                <div>
+                    <div>{{ result.name }}</div>
+                    <div>
+                        {% if result.tags is not None %}
+                            {% for tag in result.tags %}
+                                <span class="bubble-tag">{{ tag }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

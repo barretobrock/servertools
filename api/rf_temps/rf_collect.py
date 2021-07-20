@@ -145,8 +145,8 @@ while not killer.kill_now:
 
     if last_dt != datetime.now().date() and len(unknown_devices) > 0:
         # Report on found unknown devices
-        report_text = "\n\n".join([f'*{k}*\n{json.dumps(v, indent=2)}' for k, v in unknown_devices.items()])
-        sc.st.send_message(sc.kodu_kanal, message=f'Unknown devices discovered:\n\n{report_text}')
+        # report_text = "\n\n".join([f'*{k}*\n{json.dumps(v, indent=2)}' for k, v in unknown_devices.items()])
+        # sc.st.send_message(sc.kodu_kanal, message=f'Unknown devices discovered:\n\n{report_text}')
         last_dt = datetime.now().date()
         unknown_devices = {}
 
