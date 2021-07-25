@@ -14,7 +14,7 @@ sc = SlackComm(parent_log=logg)
 vt = VidTools(fps=10, resize_perc=0.5, speed_x=5)
 app = Flask(__name__)
 
-DURATION_S = 10
+DURATION_S = 30
 CAMERA = None
 
 
