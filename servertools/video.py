@@ -2,7 +2,7 @@ import re
 import os
 import tempfile
 from datetime import datetime as dt
-from typing import Optional, List, Dict, Tuple, Union
+from typing import Optional, List, Tuple
 import numpy as np
 import cv2
 import imutils
@@ -69,36 +69,57 @@ class VidTools:
         final.write_videofile(final_fpath)
         return final_fpath
 
-    def draw_on_motion(self, fpath: str, min_area: int = 500, min_frames: int = 10, threshold: int = 25,
-                       ref_frame_turnover: float = 20, buffer_s: float = 1) -> \
+    def draw_on_motion(self, fpath: str, frames: List[np.ndarray] = None, min_area: int = 500,
+                       min_frames: int = 10, threshold: int = 25, ref_frame_turnover: float = 20,
+                       buffer_s: float = 1, motion_frames_only: bool = True) -> \
             Tuple[bool, Optional[str], Optional[float]]:
         """Draws rectangles around motion items and re-saves the file
             If True is returned, the file has some motion highlighted in it, otherwise it doesn't have any
 
         Args:
-            fpath: the path to the mp4 file
+            fpath: the path to the mp4 file. can be None if frames is not None
+            frames: a list of frames to process instead of reading in from file.
             min_area: the minimum contour area (pixels)
             min_frames: the threshold of frames the final file must have. Fewer than this will return False
             threshold: min threshold (out of 255). used when calculating img differences
             ref_frame_turnover: the number of consecutive frames to use a single reference frame on
                 before resetting the reference
             buffer_s: the seconds of buffer to include in video output before and after motion events
+            motion_frames_only: if True, will keep only frames with detectable motion on them
+
+        Returns:
+            tuple(
+                - bool, whether motion was detected in any of the frames
+                - filepath of the changed file (if any)
+                - the duration of the file
+            )
 
         NB! threshold probably shouldn't exceed 254
         """
-        clip = VideoFileClip(fpath)
-        frames = [x for x in clip.iter_frames()]
-        # Set the reference frame
-        ref_frame = clip.get_frame(0)
+        if frames is None:
+            clip = VideoFileClip(fpath)
+            frames = [x for x in clip.iter_frames()]
+            # Set the reference frame
+            ref_frame = clip.get_frame(0)
+        elif frames is not None:
+            clip = ImageSequenceClip(frames, fps=self.fps)
+            ref_frame = frames[0]
+        else:
+            raise ValueError('Arguments \'fpath\' and \'frames\' were both None. '
+                             'One of these must not be empty in order for the script to function.')
         keep_frames = []    # For determining which frames have motion
         for i, frame in enumerate(frames):
             rects, contours, drawn_frame = self._detect_contours(
-                ref_frame, frame, min_area, threshold, unique_only=False)
-            if rects > 0:
-                # We've drawn some rectangles on this
+                ref_frame, frame, min_area, threshold, unique_only=False, color_correct_frame=True)
+            if motion_frames_only:
+                if rects > 0:
+                    # We've drawn some rectangles on this
+                    keep_frames.append(i)
+            else:
+                # Keeping all frames
                 keep_frames.append(i)
-                # Replace frame with drawn
-                frames[i] = drawn_frame
+            # Replace frame with drawn
+            frames[i] = drawn_frame
             if i % ref_frame_turnover == 0:
                 print(f'Frame {i} reached.')
                 if i > 0:
@@ -183,11 +204,12 @@ class VidTools:
         drawn_clip.audio = cut_clip.audio
         return drawn_clip
 
-    def write_frames(self, frames: List[np.ndarray], filepath: str, audio: CompositeAudioClip) -> str:
+    def write_frames(self, frames: List[np.ndarray], filepath: str, audio: CompositeAudioClip = None) -> str:
         """Writes the frames to a given .mp4 filepath (h264 codec)"""
         vclip = ImageSequenceClip(frames, fps=self.fps)
-        audio.set_duration(vclip.duration)
-        vclip.audio = audio
+        if audio is not None:
+            audio.set_duration(vclip.duration)
+            vclip.audio = audio
         vclip.write_videofile(filepath, codec='libx264', fps=self.fps)
         return filepath
 
@@ -238,15 +260,20 @@ class VidTools:
                 if any([cv2.matchShapes(cnt, ucnt, 1, 0.0) > contour_lim for ucnt in unique_cnts]):
                     # Unique contour - add to group
                     # Otherwise compute the bounding box for the contour & draw it on the frame
-                    (x, y, w, h) = cv2.boundingRect(cnt)
-                    cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
+                    self._draw_rectangle_over_contour(cnt, cur_frame, line_width=2, rgb=(0, 255, 0))
                     unique_cnts.append(cnt)
                     rects += 1
             else:
                 # Just pick up any contours
-                (x, y, w, h) = cv2.boundingRect(cnt)
-                cv2.rectangle(cur_frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
+                self._draw_rectangle_over_contour(cnt, cur_frame, line_width=2, rgb=(0, 255, 0))
                 rects += 1
         if color_correct_frame:
             cur_frame = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
         return rects, unique_cnts, cur_frame
+
+    @staticmethod
+    def _draw_rectangle_over_contour(contour, frame: np.ndarray, line_width: float = 2,
+                                     rgb: Tuple[float, float, float] = (0, 255, 0)):
+        """Draws a rectangle over the given contour's dimensions"""
+        (x, y, w, h) = cv2.boundingRect(contour)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), rgb, thickness=line_width)
