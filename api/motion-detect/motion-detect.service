@@ -7,7 +7,8 @@ User=bobrock
 Group=bobrock
 Type=idle
 ExecStart=/home/bobrock/venvs/stools/bin/python3 /home/bobrock/extras/servertools/api/motion-detect/main_api.py
-Restart=on-failure
+RuntimeMaxSec=86400
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
