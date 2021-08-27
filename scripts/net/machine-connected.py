@@ -10,26 +10,6 @@ logg = LogWithInflux('machine-conn')
 h = Hosts()
 ow = OpenWRT()
 
-# Check for known devices
-# logg.debug('Beginning conn status check for known devices.')
-# ips = h.get_hosts_and_ips(r'an-barret')
-# for ip_dict in ips:
-#     ip = ip_dict['ip']
-#     ip_changed_state = ow.check_ip_changed_connection(ip)
-#     if ip_changed_state in ['CONNECTED', 'DISCONNECTED']:
-#         sc = SlackComm()
-#         if ip_changed_state == 'CONNECTED':
-#             # IP recently connected
-#             logg.debug(f'Device at {ip} recently re-connected. Notifying channel.')
-#             sc.st.send_message(sc.koduv6rgu_kanal,
-#                                f'<@{sc.user_marelle}> Mehe ühik on taas koduvõrgus!:peanuts:')
-#         elif ip_changed_state == 'DISCONNECTED':
-#             # IP recently disconnected
-#             logg.debug(f'Device at {ip} recently disconnected. Notifying channel.')
-#             sc.st.send_message(sc.koduv6rgu_kanal,
-#                                f'Mehe ühik on koduvõrgust läinud :sadcowblob:')
-
-
 # Log active IPs
 device_df = pd.concat([pd.DataFrame(data=vals, index=[ip]) for ip, vals in ow.current_connections.items()])
 # Drop the mac address
