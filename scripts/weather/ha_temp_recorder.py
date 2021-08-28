@@ -11,7 +11,7 @@ query = '''
         last("humidity") AS humidity
     FROM "temps"
     WHERE 
-        location =~ /mushroom|r6du|elutuba|wc|v2lis|freezer|fridge|kontor/
+        location =~ /mushroom|r6du|tuba|wc|v2lis|freezer|fridge|kontor/
         AND time > now() - 30m
     GROUP BY 
         "location" 
