@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from typing import (
+    List
+)
 from math import ceil, sqrt, floor
 from PIL import Image
 
 
 class GIF:
     """GIF tools"""
+    DEG_CONST = 10
+    ORIENTATION = -1
+
     def __init__(self):
         self.Image = Image
 
@@ -15,17 +21,16 @@ class GIF:
         """Converts image to spinning gif"""
         # Constants
         # Base degrees to rotate
-        DEG_CONST = 10
-        ORIENTATION = -1 if clockwise else 1
+        orientation = self.ORIENTATION if clockwise else 1
 
         img = self.Image.open(filepath)
         img = self.make_transparent(img, background='black')
         img_list = [img]
 
         rotate_deg = 0
-        while rotate_deg < 360:
-            rotate_deg += (DEG_CONST * intensity)
-            new_img = img.rotate(rotate_deg * ORIENTATION)
+        while rotate_deg < 400:
+            rotate_deg += (self.DEG_CONST * intensity)
+            new_img = img.rotate(rotate_deg * orientation)
             new_img = self.make_transparent(new_img, background='black')
             img_list.append(new_img)
 
@@ -41,7 +46,8 @@ class GIF:
         # TODO
         pass
 
-    def make_transparent(self, img: Image, background: str = 'white') -> Image:
+    @staticmethod
+    def make_transparent(img: Image, background: str = 'white') -> Image:
         """Makes an image (or frame) transparent by eliminating the white background"""
 
         img = img.convert("RGBA")
@@ -64,7 +70,8 @@ class GIF:
 
         return img
 
-    def _save_imgs_to_gif(self, filename: str, img_list, frame_duration_ms=100):
+    @staticmethod
+    def _save_imgs_to_gif(filename: str, img_list: List[Image.Image], frame_duration_ms: int = 100):
         """Saves images to gif
 
         Args:
@@ -75,10 +82,11 @@ class GIF:
         img_list[0].save(filename, 'gif', save_all=True, append_images=img_list[1:],
                          duration=frame_duration_ms, loop=0)
 
-    def make_gif(self, filename, img_list, frame_duration_ms=100, ):
+    def make_gif(self, filename: str, img_list: List[Image.Image], frame_duration_ms: int = 100, ):
         """Makes a gif from a list of images, sorted alphabetically
 
         Args:
+            filename: path to the file
             img_list: list of filepaths
             frame_duration_ms: int, duration of each frame
         """

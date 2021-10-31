@@ -2,9 +2,16 @@ import os
 import json
 import socket
 from datetime import datetime as dt
-from typing import Tuple, List, Optional
+from typing import (
+    Tuple,
+    List,
+    Optional
+)
 from openwrt_luci_rpc import OpenWrtRpc
-from kavalkilu import Keys, Path
+from kavalkilu import (
+    Keys,
+    Path
+)
 
 
 class OpenWRT(OpenWrtRpc):

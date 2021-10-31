@@ -4,14 +4,22 @@
 Handles exceptions while interacting with Selenium objects
 """
 import time
-from typing import List, Callable, Optional, Any, Union
+from typing import (
+    List,
+    Callable,
+    Optional,
+    Any,
+    Union,
+    TYPE_CHECKING
+)
 from random import randint
-import psutil
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
 from kavalkilu import LogWithInflux
+if TYPE_CHECKING:
+    from easylogger import Log
 
 
 class ChromeDriver(Chrome):

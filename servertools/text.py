@@ -3,13 +3,22 @@
 import re
 import json
 from random import randint
-from typing import Union, List
+from typing import (
+    Union,
+    List
+)
 import nltk
 import markovify
 from markovify import Text
-from urllib.request import Request, urlopen
+from urllib.request import (
+    Request,
+    urlopen
+)
 from lxml import etree
-from lxml.etree import _ElementTree, _Element
+from lxml.etree import (
+    _ElementTree,
+    _Element
+)
 
 
 class MarkovText(Text):

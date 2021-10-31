@@ -2,11 +2,21 @@ import re
 import os
 import tempfile
 from datetime import datetime as dt
-from typing import Optional, List, Tuple
+from typing import (
+    Optional,
+    List,
+    Tuple
+)
 import numpy as np
 import cv2
 import imutils
-from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, CompositeAudioClip, VideoClip
+from moviepy.editor import (
+    VideoFileClip,
+    concatenate_videoclips,
+    ImageSequenceClip,
+    CompositeAudioClip,
+    VideoClip
+)
 
 
 class VidTools:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 import time
+import pathlib
 import requests
 from grafana_api.grafana_face import GrafanaFace
 from kavalkilu import Keys, LogWithInflux
@@ -18,11 +18,11 @@ def get_pic_and_upload(url, name):
 
     resp = requests.get(url, headers={'Authorization': f'Bearer {creds["token"]}'})
 
-    temp_file = os.path.abspath('/tmp/dash_snap.png')
-    with open(temp_file, 'wb') as f:
+    temp_file = pathlib.Path().joinpath('/tmp/dash_snap.png')
+    with temp_file.open('wb') as f:
         for chunk in resp:
             f.write(chunk)
-    scom.st.upload_file(scom.notify_channel, temp_file, name)
+    scom.st.upload_file(scom.teatede_kanal, temp_file, name)
 
 
 # The URL template to use
@@ -45,7 +45,7 @@ snap_panels = [
 ]
 
 
-scom.st.send_message(scom.notify_channel, 'Daily Report coming up!')
+scom.st.send_message(scom.teatede_kanal, 'Daily Report coming up!')
 # Use grafana API to get dashboard UID
 gapi = GrafanaFace(auth=creds['token'])
 for dash_tag in ['home_automation', 'speedtests', 'logs', 'pihole']:

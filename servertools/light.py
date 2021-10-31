@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
-from random import random, randint, uniform
-from phue import Bridge, Light, Sensor
-from typing import Union, Tuple, List, Optional
+from typing import (
+    Union,
+    Tuple,
+    List,
+    Optional
+)
+from random import (
+    random,
+    randint,
+    uniform
+)
+from phue import (
+    Bridge,
+    Light,
+    Sensor
+)
 from kavalkilu import Hosts
 
 

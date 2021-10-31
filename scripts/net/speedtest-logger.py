@@ -4,7 +4,11 @@
 from speedtest import Speedtest
 from datetime import datetime as dt
 import pandas as pd
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
+from kavalkilu import (
+    LogWithInflux,
+    InfluxDBLocal,
+    InfluxDBHomeAuto
+)
 
 
 logg = LogWithInflux('speedtest')

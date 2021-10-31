@@ -3,19 +3,36 @@
 import os
 import re
 import json
+from typing import (
+    List,
+    Union,
+    Any,
+    Dict
+)
+from datetime import (
+    datetime,
+    timedelta
+)
+from functools import reduce
 import requests
 import pandas as pd
-from typing import List, Union, Any, Dict
-from datetime import datetime, timedelta
 from dateutil import tz
-from functools import reduce
-from meteocalc import feels_like, Temp, dew_point
+
+from meteocalc import (
+    feels_like,
+    Temp,
+    dew_point
+)
 from pyowm import OWM
 from pyowm.weatherapi25.weather import Weather
 from pyowm.weatherapi25.forecast import Forecast
 from yr.libyr import Yr
 from slacktools import BlockKitBuilder
-from kavalkilu import Keys, LogWithInflux, Path
+from kavalkilu import (
+    Keys,
+    LogWithInflux,
+    Path
+)
 from .slack_communicator import SlackComm
 
 

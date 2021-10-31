@@ -1,6 +1,16 @@
 import os
-from datetime import datetime as dt, timedelta
-from kavalkilu import LogWithInflux, DateTools, InfluxDBLocal, InfluxDBPiHole, SQLLiteLocal, Hosts
+from datetime import (
+    datetime as dt,
+    timedelta
+)
+from kavalkilu import (
+    LogWithInflux,
+    DateTools,
+    InfluxDBLocal,
+    InfluxDBPiHole,
+    SQLLiteLocal,
+    Hosts
+)
 from servertools import SlackComm
 
 

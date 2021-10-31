@@ -1,12 +1,20 @@
 """Checks slackmojis daily for new additions"""
 import json
-from kavalkilu import Path, LogWithInflux
-from servertools import SlackComm, XPathExtractor
+import pathlib
+from kavalkilu import (
+    Path,
+    LogWithInflux
+)
+from servertools import (
+    SlackComm,
+    XPathExtractor
+)
 
 
 logg = LogWithInflux('emoji-scraper')
 scom = SlackComm(bot='viktor', parent_log=logg)
 
+mojis_path = pathlib.Path().home().joinpath('data/slackmojis.json')
 p = Path()
 fpath = p.easy_joiner(p.data_dir, 'slackmojis.json')
 chan = 'emoji_suggestions'

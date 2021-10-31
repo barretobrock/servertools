@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from roku import Roku, Application
 from typing import Optional
-from .hosts import ServerHosts
+from kavalkilu import Hosts
 
 
 class RokuTV(Roku):
@@ -19,9 +19,9 @@ class RokuTV(Roku):
 
     def __init__(self, roku_ip: str = None):
         # Set path to roku TV ip
-        h = ServerHosts()
+        h = Hosts()
         if roku_ip is None:
-            roku_ip = h.get_ip('ot-roku')
+            roku_ip = h.get_ip_from_host('ot-roku')
         super().__init__(roku_ip)
 
     def power(self):

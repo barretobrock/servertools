@@ -2,8 +2,16 @@
     haven't been statically assigned"""
 import pandas as pd
 from slacktools import BlockKitBuilder
-from servertools import OpenWRT, SlackComm
-from kavalkilu import Hosts, LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
+from servertools import (
+    OpenWRT,
+    SlackComm
+)
+from kavalkilu import (
+    Hosts,
+    LogWithInflux,
+    InfluxDBLocal,
+    InfluxDBHomeAuto
+)
 
 
 logg = LogWithInflux('machine-conn')

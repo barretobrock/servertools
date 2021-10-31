@@ -56,10 +56,7 @@ class Email:
             # Email is current. Return elements
             return emailobj
 
-    def forward(self, email_to, email_object):
-        """Command to forward an email"""
-        email_object.replace_header('From', self.un)
-        email_object.replace_header('To', email_to)
+    def _sendmail_routine(self, email_to, email_object):
         self.log.debug('Communicating with server.')
         try:
             self.connect_for_sending()
@@ -70,6 +67,12 @@ class Email:
             self.log.exception('Connection with server timed out.')
         except:
             self.log.exception('Could not connect with email server.')
+
+    def forward(self, email_to, email_object):
+        """Command to forward an email"""
+        email_object.replace_header('From', self.un)
+        email_object.replace_header('To', email_to)
+        self._sendmail_routine(email_to=email_to, email_object=email_object)
 
     def send(self, email_to, subject, body, attachment_paths: List[str] = None):
         """Command to package and send email"""
@@ -96,13 +99,4 @@ class Email:
                         encoders.encode_base64(attachment)
                 attachment.add_header("Content-Disposition", 'attachment', filename=os.path.basename(attachment_path))
                 msg.attach(attachment)
-        self.log.debug('Communicating with server.')
-        try:
-            self.connect_for_sending()
-            self.smtpserver.sendmail(self.un, email_to, msg.as_string())
-            self.log.debug('Message sent.')
-            self.smtpserver.quit()
-        except TimeoutError:
-            self.log.exception('Connection with server timed out.')
-        except:
-            self.log.exception('Could not connect with email server.')
+        self._sendmail_routine(email_to=email_to, email_object=msg)

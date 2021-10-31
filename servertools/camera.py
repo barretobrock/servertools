@@ -1,13 +1,24 @@
 import os
 import re
-from datetime import datetime as dt, timedelta
+from datetime import (
+    datetime as dt,
+    timedelta
+)
 import requests
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
-from typing import Optional, List, Dict, Union, Tuple
+from typing import (
+    Optional,
+    List,
+    Dict,
+    Union
+)
 import amcrest
 from reolink_api import Camera
-from kavalkilu import Keys, LogWithInflux
+from kavalkilu import (
+    Keys,
+    LogWithInflux
+)
 
 
 # TODO:

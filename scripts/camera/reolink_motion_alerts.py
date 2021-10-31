@@ -1,11 +1,21 @@
 import os
 import math
 import tempfile
-from datetime import datetime as dt, timedelta
+from datetime import (
+    datetime as dt,
+    timedelta
+)
 from moviepy.editor import VideoFileClip
-from kavalkilu import Hosts, LogWithInflux
+from kavalkilu import (
+    Hosts,
+    LogWithInflux
+)
 from easylogger import ArgParse
-from servertools import SlackComm, VidTools, Reolink
+from servertools import (
+    SlackComm,
+    VidTools,
+    Reolink
+)
 
 
 logg = LogWithInflux('motion_alerts')

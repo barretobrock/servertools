@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta
+)
 import pandas as pd
 from kavalkilu import LogWithInflux
-from servertools import NWSForecast, NWSForecastZone, SlackWeatherNotification
+from servertools import (
+    NWSForecast,
+    NWSForecastZone,
+    SlackWeatherNotification
+)
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
