@@ -7,22 +7,42 @@ from datetime import (
 import pandas as pd
 from kavalkilu import LogWithInflux
 from servertools import (
-    NWSForecast,
-    NWSForecastZone,
+    YrNoWeather,
+    YRNOLocation,
     SlackWeatherNotification
 )
+from servertools.plants import Plants
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('significant_change', log_dir='weather')
 
 swno = SlackWeatherNotification(parent_log=log)
+plants = Plants()
 
 now = datetime.now()
-tomorrow = (now + timedelta(days=1))
-weather = NWSForecast(NWSForecastZone.ATX)
-hours_df = weather.get_hourly_forecast()
-hours_df['date'] = pd.to_datetime(hours_df['date'])
+tomorrow = (now + timedelta(hours=36))
+
+# Get weather details
+wx = YrNoWeather(location=YRNOLocation.ATX)
+forecast_df = wx.hourly_summary()
+forecast_df['date'] = pd.to_datetime(forecast_df['from'])
+forecast_df = forecast_df[['date', 'temp-avg']]
+# Filter on next 48 hours
+forecast_df = forecast_df.loc[forecast_df['date'] <= tomorrow]
+# Get lowest temp
+lowest = forecast_df['temp-avg'].min()
+# Extract plants that might be affected
+affected_plants = plants.get_plants_below(lowest)
+
+if len(affected_plants) > 0:
+    # Get the highest low temp of the affected plants
+    highest_lowtemp = max([x.temp_min for x in affected_plants])
+    # Get the times in which the temps fall below highest_lowtemp
+    lowtemps_df = forecast_df.loc[forecast_df['temp-avg'] <= highest_lowtemp]
+    # TODO: Group consistent hours for display (e.g., 3pm - 8am)
+    # TODO: Build message blocks for these that include plant names
+
 
 # focus on just the following day's measurements
 nextday = hours_df[hours_df['date'].dt.day == tomorrow.day].copy()

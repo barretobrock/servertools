@@ -1,10 +1,7 @@
 """Checks slackmojis daily for new additions"""
 import json
 import pathlib
-from kavalkilu import (
-    Path,
-    LogWithInflux
-)
+from kavalkilu import LogWithInflux
 from servertools import (
     SlackComm,
     XPathExtractor
@@ -15,8 +12,6 @@ logg = LogWithInflux('emoji-scraper')
 scom = SlackComm(bot='viktor', parent_log=logg)
 
 mojis_path = pathlib.Path().home().joinpath('data/slackmojis.json')
-p = Path()
-fpath = p.easy_joiner(p.data_dir, 'slackmojis.json')
 chan = 'emoji_suggestions'
 url = 'https://slackmojis.com/emojis/recent'
 xpath_extractor = XPathExtractor(url)
@@ -25,10 +20,10 @@ emoji_list = xpath_extractor.xpath('//ul[@class="emojis"]', single=True)
 emojis = emoji_list.getchildren()
 
 # Read in the previous emoji id list
-if not p.exists(fpath):
+if not mojis_path.exists():
     prev_emojis = {}
 else:
-    with open(fpath) as f:
+    with mojis_path.open() as f:
         prev_emojis = json.loads(f.read())
 
 new_emojis = {}
@@ -73,7 +68,7 @@ else:
     logg.debug('No new emojis to send.')
 
 # Save data to path
-with open(fpath, 'w') as f:
+with mojis_path.open('w') as f:
     json.dump(prev_emojis, f)
 
 logg.close()
