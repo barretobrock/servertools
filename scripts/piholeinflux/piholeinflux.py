@@ -1,4 +1,5 @@
 import os
+from pytz import timezone
 from datetime import (
     datetime as dt,
     timedelta
@@ -21,12 +22,13 @@ datetools = DateTools()
 
 FTL_DB_PATH = os.path.join('/etc', *['pihole', 'pihole-FTL.db'])
 sqll = SQLLiteLocal(FTL_DB_PATH)
+us_ct = timezone('US/Central')
 
 INTERVAL_MINS = 60
 end = dt.now().astimezone().replace(second=0, microsecond=0)
 start = (end - timedelta(minutes=INTERVAL_MINS))
-unix_start = datetools.dt_to_unix(start, from_tz='US/Central')
-unix_end = datetools.dt_to_unix(end, from_tz='US/Central')
+unix_start = datetools.dt_to_unix(start, from_tz=us_ct)
+unix_end = datetools.dt_to_unix(end, from_tz=us_ct)
 
 query = f"""
     SELECT
