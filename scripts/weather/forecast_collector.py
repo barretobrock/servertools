@@ -1,4 +1,5 @@
 """Collect forecast data"""
+import sys
 from datetime import datetime, timedelta
 from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
 from servertools import OpenWeather, OWMLocation, NWSForecast, NWSForecastZone, \
@@ -14,9 +15,14 @@ period_h = 24
 p_start = (datetime.now() + timedelta(hours=1))
 p_end = (p_start + timedelta(hours=period_h))
 
-owm_fc = OpenWeather(OWMLocation.ATX).hourly_forecast()
-nws_fc = NWSForecast(NWSForecastZone.ATX).get_hourly_forecast()
-yrno_fc = YrNoWeather(YRNOLocation.ATX).hourly_summary()
+try:
+    owm_fc = OpenWeather(OWMLocation.ATX).hourly_forecast()
+    nws_fc = NWSForecast(NWSForecastZone.ATX).get_hourly_forecast()
+    yrno_fc = YrNoWeather(YRNOLocation.ATX).hourly_summary()
+except Exception as e:
+    log.warning(f'Unable to capture weather info - received error: {e}. Exiting script...')
+    log.close()
+    sys.exit(1)
 
 # Push all weather data into influx
 for svc, df in zip(['own', 'nws', 'yrno'], [owm_fc, nws_fc, yrno_fc]):
