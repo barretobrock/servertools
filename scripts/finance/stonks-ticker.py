@@ -25,7 +25,11 @@ if not last_high_path.exists():
     last_high = ann_high
 else:
     with last_high_path.open() as f:
-        last_high = int(f.read().strip())
+        contents = f.read().strip()
+        if contents != '':
+            last_high = int(contents)
+        else:
+            last_high = ann_high
 
 scom = SlackComm('viktor')
 
@@ -63,8 +67,8 @@ blocks = [
 scom.st.send_message('C01M49M5EEM', message='stonk update', blocks=blocks)
 
 # Write new high if it's changed or new
-if not last_high_path.exists() or ann_high > last_high:
+if not last_high_path.exists() or ann_high > last_high or contents == '':
     log.info(f'Writing new high to file: {ann_high}')
     with last_high_path.open('w') as f:
-        f.write(ann_high)
+        f.write(str(ann_high))
 log.close()
