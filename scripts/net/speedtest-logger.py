@@ -21,11 +21,14 @@ influx = InfluxDBLocal(InfluxDBHomeAuto.NETSPEED)
 logg.debug('Instantiating speedtest object.')
 speed = Speedtest()
 servers = speed.get_servers([])
-try:
-    server = speed.get_best_server()
-except SpeedtestBestServerFailure:
-    logg.warning('Best server test failed. Using nearest server.')
-    server = next(iter(list(servers.values())[0]), None)
+server = None
+for attempt in range(3):
+    logg.debug(f'Best server get attempt {attempt + 1}...')
+    try:
+        server = speed.get_best_server()
+        break
+    except Exception as e:
+        logg.warning(f'Best server get failed. Exception: {e}')
 
 if server is None:
     logg.warning('No suitable speedtest server was found... Exiting script early.')
