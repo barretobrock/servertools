@@ -1,9 +1,21 @@
 """Collect forecast data"""
-import sys
-from datetime import datetime, timedelta
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
-from servertools import OpenWeather, OWMLocation, NWSForecast, NWSForecastZone, \
-    YrNoWeather, YRNOLocation
+from datetime import (
+    datetime,
+    timedelta
+)
+from kavalkilu import (
+    LogWithInflux,
+    InfluxDBLocal,
+    InfluxDBHomeAuto
+)
+from servertools import (
+    OpenWeather,
+    OWMLocation,
+    NWSForecast,
+    NWSForecastZone,
+    YrNoWeather,
+    YRNOLocation
+)
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -15,24 +27,37 @@ period_h = 24
 p_start = (datetime.now() + timedelta(hours=1))
 p_end = (p_start + timedelta(hours=period_h))
 
-try:
-    owm_fc = OpenWeather(OWMLocation.ATX).hourly_forecast()
-    nws_fc = NWSForecast(NWSForecastZone.ATX).get_hourly_forecast()
-    yrno_fc = YrNoWeather(YRNOLocation.ATX).hourly_summary()
-except Exception as e:
-    log.warning(f'Unable to capture weather info - received error: {e}. Exiting script...')
-    log.close()
-    sys.exit(1)
+service_dict = {
+    'owm': {
+        'cls': OpenWeather,
+        'init-args': [OWMLocation.ATX]
+    },
+    'nws': {
+        'cls': NWSForecast,
+        'init-args': [NWSForecastZone.ATX]
+    },
+    'yrno': {
+        'cls': YrNoWeather,
+        'init-args': [YRNOLocation.ATX]
+    }
+}
 
-# Push all weather data into influx
-for svc, df in zip(['own', 'nws', 'yrno'], [owm_fc, nws_fc, yrno_fc]):
-    log.debug(f'Collecting data from {svc.upper()}...')
-    cols = ['date', 'humidity', 'temp-avg', 'feels-temp-avg']
+cols = ['date', 'humidity', 'temp-avg', 'feels-temp-avg']
+
+for svc_name, svc_dict in service_dict.items():
+    log.debug(f'Attempting to pull forecast data via {svc_name.upper()} service...')
+    try:
+        svc = svc_dict.get('cls')(*svc_dict.get('init-args'))
+        df = svc.get_hourly_forecast()
+    except Exception as e:
+        log.warning(f'Exception occurred: {e} - skipping service...')
+        continue
+
     if svc == 'nws':
         # Replace relative-humidity with humidity
         df['humidity'] = df['relative-humidity']
     elif svc == 'yrno':
-        # No humidity, feelslike included in this one
+        # No humidity, but feelslike included in this one
         _ = [cols.pop(cols.index(x)) for x in ['feels-temp-avg', 'humidity']]
         df['date'] = df['from']
     df = df[cols]
@@ -40,8 +65,11 @@ for svc, df in zip(['own', 'nws', 'yrno'], [owm_fc, nws_fc, yrno_fc]):
     df = df[(df['date'] >= p_start.strftime('%F %H:00:00')) &
             (df['date'] <= p_end.strftime('%F %H:00:00'))]
     df['loc'] = 'austin'
-    influx.write_df_to_table(df, 'loc', df.columns.tolist()[1:-1], 'date')
+    df['svc'] = svc_name
+    log.debug('Writing data to table...')
+    influx.write_df_to_table(df=df, tags=['loc', 'svc'], value_cols=df.columns.tolist()[1:-2], time_col='date')
 
+log.debug('Closing influx connection.')
 influx.close()
 
 log.debug('Temp logging successfully completed.')

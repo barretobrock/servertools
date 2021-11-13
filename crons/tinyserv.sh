@@ -8,11 +8,11 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 7 * * * *               $PY3    $HOME/$SCRIPTS/piholeinflux/piholeinflux.py -lvl debug
 ## DATA COLLECTION
 ## Network
-*/2 * * * *             $PY3    $HOME/$SCRIPTS/net/machine-connected.py
-0 */3 * * *             $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py
+*/2 * * * *             $PY3    $HOME/$SCRIPTS/net/machine-connected.py -lvl debug
+0 */3 * * *             $PY3    $HOME/$SCRIPTS/net/speedtest-logger.py -lvl debug
 ## Climate
-0 * * * *               $PY3    $HOME/$SCRIPTS/weather/local_weather.py
-0 * * * *               $PY3    $HOME/$SCRIPTS/weather/forecast_collector.py
+0 * * * *               $PY3    $HOME/$SCRIPTS/weather/local_weather.py -lvl debug
+0 * * * *               $PY3    $HOME/$SCRIPTS/weather/forecast_collector.py -lvl debug
 */10 * * * *            $PY3    $HOME/$SCRIPTS/weather/ha_temp_recorder.py -lvl debug
 
 ## HOME AUTOMATION
@@ -29,10 +29,10 @@ PY3=/home/bobrock/venvs/stools/bin/python3
 20 19 * 10-12,1-3 *     $PY3    $HOME/$SCRIPTS/weather/frost_warning.py -lvl debug # Run Oct-March
 #17 16 * * 0-5           $PY3    $HOME/$SCRIPTS/weather/daily_weather_and_sig_temp_warn.py -lvl debug
 #*/10 * * * *            $PY3    $HOME/$SCRIPTS/weather/severe_weather_check.py -lvl debug
-17 10 * * *             $PY3    $HOME/$SCRIPTS/weather/moon_phase.py
+17 10 * * *             $PY3    $HOME/$SCRIPTS/weather/moon_phase.py -lvl debug
 27 9 * * *              $PY3    $HOME/$SCRIPTS/slackbot/emoji_scraper.py -lvl debug
 27 8 * * *              $PY3    $HOME/$SCRIPTS/slackbot/word-of-the-day.py -lvl debug
-0 9 * * 1-5             $PY3    $HOME/$SCRIPTS/finance/stonks-ticker.py
+0 9 * * 1-5             $PY3    $HOME/$SCRIPTS/finance/stonks-ticker.py -lvl debug
 
 ## SELENIUM
 ### Apt price scraping
