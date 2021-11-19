@@ -12,9 +12,7 @@ class Plant:
         return f'<Plant(name="{self.name}")>'
 
 
-class Plants:
-    FLEX_C = 2  # Flexibility in the lowest allowable temperature
-    PLANTS = [
+PLANTS = [
         Plant('blue_echeveria', 10, 35),
         Plant('blue_fescue', -10, 35),
         Plant('catnip_big', 5, 25),
@@ -37,9 +35,14 @@ class Plants:
         Plant('turks_head', 10, 35)
     ]
 
-    def __init__(self):
-        self.plants = []    # type: List[Plant]
-        self.add_plants(self.PLANTS)
+
+class Plants:
+    FLEX_C = 2  # Flexibility in the lowest allowable temperature
+
+    def __init__(self, plant_list: List[Plant] = None):
+        self.plants = []
+        plant_list = plant_list if plant_list is None else PLANTS
+        self.add_plants(plant_list)
 
     def add_plant(self, plant: Plant):
         self.plants.append(plant)
@@ -56,10 +59,10 @@ class Plants:
         """Returns a list of plants whose max temp threshold is below the marked high temp"""
         return [x for x in self.plants if (x.temp_max - self.FLEX_C) >= temp]
 
-    def get_min_temp(self) -> float:
-        """Gets the minimum threshold temp from the plants stored"""
-        return min([x.temp_min for x in self.plants])
+    def get_max_min_temp(self) -> float:
+        """Gets the highest minimum threshold temp from the plants stored"""
+        return max([x.temp_min for x in self.plants])
 
-    def get_max_temp(self) -> float:
-        """Gets the maximum threshold temp from the plants stored"""
-        return max([x.temp_max for x in self.plants])
+    def get_min_max_temp(self) -> float:
+        """Gets the lowest maximum threshold temp from the plants stored"""
+        return min([x.temp_max for x in self.plants])
