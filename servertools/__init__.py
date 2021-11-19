@@ -18,6 +18,7 @@ from .light import (
 )
 from .message import Email
 from .openwrt import OpenWRT
+from .plants import Plants, Plant
 from .roku import RokuTV
 from .selenium import (
     ChromeDriver,

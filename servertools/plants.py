@@ -13,7 +13,7 @@ class Plant:
 
 
 class Plants:
-    FLEX_C = 3  # Flexibility in the lowest allowable temperature
+    FLEX_C = 2  # Flexibility in the lowest allowable temperature
     PLANTS = [
         Plant('blue_echeveria', 10, 35),
         Plant('blue_fescue', -10, 35),
@@ -48,6 +48,18 @@ class Plants:
         for plant in plantlist:
             self.add_plant(plant)
 
-    def get_plants_below(self, temp: float) -> List[Plant]:
-        """Returns a list of plants whose threshold is above the marked temp"""
+    def get_cold_plants(self, temp: float) -> List[Plant]:
+        """Returns a list of plants whose min temp threshold is above the marked low temp"""
         return [x for x in self.plants if (x.temp_min - self.FLEX_C) >= temp]
+
+    def get_hot_plants(self, temp: float) -> List[Plant]:
+        """Returns a list of plants whose max temp threshold is below the marked high temp"""
+        return [x for x in self.plants if (x.temp_max - self.FLEX_C) >= temp]
+
+    def get_min_temp(self) -> float:
+        """Gets the minimum threshold temp from the plants stored"""
+        return min([x.temp_min for x in self.plants])
+
+    def get_max_temp(self) -> float:
+        """Gets the maximum threshold temp from the plants stored"""
+        return max([x.temp_max for x in self.plants])
