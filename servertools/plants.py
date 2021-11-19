@@ -41,7 +41,7 @@ class Plants:
 
     def __init__(self, plant_list: List[Plant] = None):
         self.plants = []
-        plant_list = plant_list if plant_list is None else PLANTS
+        plant_list = plant_list if plant_list is not None else PLANTS
         self.add_plants(plant_list)
 
     def add_plant(self, plant: Plant):
