@@ -57,11 +57,11 @@ class Plants:
 
     def get_cold_plants(self, temp: float) -> List[Plant]:
         """Returns a list of plants whose min temp threshold is above the marked low temp"""
-        return [x for x in self.plants if (x.temp_min - self.FLEX_C) >= temp]
+        return [x for x in self.get_outdoor_plants() if (x.temp_min - self.FLEX_C) >= temp]
 
     def get_hot_plants(self, temp: float) -> List[Plant]:
         """Returns a list of plants whose max temp threshold is below the marked high temp"""
-        return [x for x in self.plants if (x.temp_max + self.FLEX_C) >= temp]
+        return [x for x in self.get_outdoor_plants() if (x.temp_max + self.FLEX_C) >= temp]
 
     def get_max_min_temp(self) -> float:
         """Gets the highest minimum threshold temp from the plants stored"""
