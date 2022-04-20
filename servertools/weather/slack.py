@@ -45,15 +45,15 @@ class SlackWeatherNotification:
         ]
         self._notify_channel(blocks, channel=self.sComm.hoiatuste_kanal, title='Frost/Freeze Alert!')
 
-    def plant_alert(self, plants_list: List[Plant], hour_start: int, hour_end: int, lowest_temp: float):
+    def plant_alert(self, plants_list: List[Plant], hour_start: datetime, hour_end: datetime, lowest_temp: float):
         """Handles routines for alerting to a frost warning"""
         plants_str = '\n'.join([f' - {x.name}' for x in plants_list])
         blocks = [
             bkb.make_context_section(f'Plant Alert!'),
             bkb.make_block_divider(),
             bkb.make_block_section(f'Plant Warning: The following plants will be affected due to temps '
-                                   f'falling to *`{lowest_temp:.1f}C`* (under threshold) from {hour_start} to '
-                                   f'{hour_end}:\n{plants_str}')
+                                   f'falling to *`{lowest_temp:.1f}C`* (under threshold) from {hour_start:%H} to '
+                                   f'{hour_end:%H}:\n{plants_str}')
         ]
         self._notify_channel(blocks, channel=self.sComm.hoiatuste_kanal, title='Plant Alert!')
 

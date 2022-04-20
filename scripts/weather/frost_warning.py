@@ -3,19 +3,26 @@
 from datetime import datetime
 import pandas as pd
 from kavalkilu import LogWithInflux
-from servertools import SlackWeatherNotification, NWSForecast, NWSForecastZone
+from servertools import (
+    SlackWeatherNotification,
+    OpenWeather,
+    OWMLocation,
+    Plants,
+    Plant
+)
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('frost_warn', log_dir='weather')
 
 now = datetime.now()
-weather = NWSForecast(NWSForecastZone.ATX)
+weather = OpenWeather(OWMLocation.ATX)
 hours_df = weather.get_hourly_forecast()
+# Convert date to datetime
 hours_df['date'] = pd.to_datetime(hours_df['date'])
 
 # Filter by column & get only the next 12 hours of forecasted weather
-cols = ['date', 'temp-avg', 'feels-temp-avg', 'dewpoint', 'wind-speed']
-hours_df = hours_df.loc[hours_df.date < (now + pd.Timedelta(hours=12)), cols]
+cols = ['date', 'temp-avg', 'temp-feels-like', 'dewpoint', 'wind-speed']
+hours_df = hours_df.loc[hours_df.date < (now + pd.Timedelta(hours=24)), cols]
 
 logic_dict = {
     'freeze': (hours_df['temp-avg'] < 0) & ((hours_df['dewpoint'] < -8) | (hours_df['wind-speed'] > 5)),
@@ -25,6 +32,7 @@ logic_dict = {
 
 warning = None
 for name, cond in logic_dict.items():
+    hours_df[name] = cond
     if any(cond.tolist()):
         # We want the warnings to move from severe to relatively mild &
         # break on the first one that matches the condition
