@@ -14,23 +14,21 @@ from typing import (
     Union
 )
 import amcrest
+from loguru import logger
 from reolink_api import Camera
-from kavalkilu import (
-    Keys,
-    LogWithInflux
-)
-
+from kavalkilu import Keys
 
 # TODO:
 #  - add get_dimensions (sub or main stream) methods to both classes
 #  - add means of drawing motion on captured frames inside each class
 #       - include an option to clip only frames that have motion with a bit of buffer
 
+
 class Reolink(Camera):
     """Wrapper for Reolink's Camera class"""
-    def __init__(self, ip: str, parent_log: LogWithInflux = None):
+    def __init__(self, ip: str, parent_log: logger = None):
         self.ip = ip
-        self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
+        self.logg = parent_log.bind(child_name=self.__class__.__name__)
         creds = Keys().get_key('webcam')
         super().__init__(self.ip, username=creds['un'], password=creds['pw'])
 
@@ -57,9 +55,9 @@ class Amcrest:
         'IPC': 'ip_cam'
     }
 
-    def __init__(self, ip: str, port: int = 80, parent_log: LogWithInflux = None):
+    def __init__(self, ip: str, port: int = 80, parent_log: logger = None):
         self.ip = ip
-        self.logg = LogWithInflux(parent_log, child_name=self.__class__.__name__)
+        self.logg = parent_log.bind(child_name=self.__class__.__name__)
         self.creds = Keys().get_key('webcam')
         self.base_url = f'http://{ip}/cgi-bin'
         self.base_url_with_cred = f'http://{self.creds["un"]}:{self.creds["pw"]}@{ip}/cgi-bin'

@@ -97,6 +97,7 @@ class Email:
                         attachment = MIMEBase(maintype, subtype)
                         attachment.set_payload(f.read())
                         encoders.encode_base64(attachment)
-                attachment.add_header("Content-Disposition", 'attachment', filename=os.path.basename(attachment_path))
+                attachment.add_header("Content-Disposition", 'attachment',
+                                      filename=os.path.basename(attachment_path))
                 msg.attach(attachment)
         self._sendmail_routine(email_to=email_to, email_object=msg)

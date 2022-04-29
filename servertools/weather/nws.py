@@ -214,7 +214,7 @@ class NWSForecast:
         intensity = conditions['intensity']
 
         if all([x is None for x in [coverage, weather, intensity]]):
-            return f'Nothing at all!'
+            return 'Nothing at all!'
         else:
             coverage = coverage if coverage is not None else ''
             weather = weather if weather is not None else ''

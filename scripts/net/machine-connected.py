@@ -1,20 +1,20 @@
 """Tracks all currently connected machines, notifies of IPs that
     haven't been statically assigned"""
+from pathlib import Path
 import pandas as pd
 from slacktools import BlockKitBuilder
 from servertools import (
     OpenWRT,
     SlackComm
 )
+from pukr import get_logger
 from kavalkilu import (
     Hosts,
-    LogWithInflux,
     InfluxDBLocal,
     InfluxDBHomeAuto
 )
 
-
-logg = LogWithInflux('machine-conn')
+logg = get_logger('machine-conn', log_dir_path=Path().home().joinpath('logs/machine_conn'))
 h = Hosts()
 ow = OpenWRT()
 

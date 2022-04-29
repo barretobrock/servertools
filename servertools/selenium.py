@@ -9,17 +9,17 @@ from typing import (
     Callable,
     Optional,
     Any,
-    Union,
-    TYPE_CHECKING
+    Union
 )
 from random import randint
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.remote.webelement import WebElement
-from kavalkilu import LogWithInflux
-if TYPE_CHECKING:
-    from easylogger import Log
+from selenium.webdriver.remote.webelement import (
+    WebElement,
+    By
+)
+from loguru import logger
 
 
 class ChromeDriver(Chrome):
@@ -80,14 +80,18 @@ class BrowserAction:
     STD_ATTEMPTS = 3    # Standard attempts to make before failing
 
     def __init__(self, driver_path: str = '/usr/bin/chromedriver',
-                 timeout: float = 60, options: List[str] = None, headless: bool = True, parent_log: 'Log' = None):
+                 timeout: float = 60, options: List[str] = None, headless: bool = True, parent_log: logger = None):
         self.driver = ChromeDriver(driver_path, timeout, options, headless)
         self.pid = self.driver.service.process.pid
         self.port = self.driver.service.port
-        self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
-        self.elem_by_xpath = self.driver.find_element_by_xpath
-        self.elems_by_xpath = self.driver.find_elements_by_xpath
+        self.log = parent_log.bind(child_name=self.__class__.__name__)
         self.log.debug(f'Chromedriver started up with pid: {self.pid} receiving on port: {self.port}')
+
+    def elem_by_xpath(self, val):
+        return self.driver.find_element(by=By.XPATH, value=val)
+
+    def elems_by_xpath(self, val):
+        return self.driver.find_elements(by=By.XPATH, value=val)
 
     def _do_attempts(self, func: Callable, *args, sub_method: str = None, sub_method_input: str = None,
                      attempts: int = 3, rest_s: float = 2) -> Optional[Any]:

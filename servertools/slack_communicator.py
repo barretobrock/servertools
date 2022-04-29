@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Sends messages to Slack"""
+from loguru import logger
 from slacktools import (
     SlackTools,
     BlockKitBuilder,
     SecretStore
 )
-from kavalkilu import LogWithInflux
 
 
 class SlackComm:
-    def __init__(self, bot: str = 'sasha', parent_log: LogWithInflux = None):
+    def __init__(self, bot: str = 'sasha', parent_log: logger = None):
         credstore = SecretStore('secretprops.kdbx')
-        self.log = LogWithInflux(parent_log, child_name=self.__class__.__name__)
-        self.st = SlackTools(credstore=credstore, parent_log=self.log, slack_cred_name=bot)
+        bot_creds = credstore.get_key_and_make_ns(bot)
+        self.log = parent_log.bind(child_name=self.__class__.__name__)
+        self.st = SlackTools(bot_cred_entry=bot_creds, parent_log=self.log, use_session=False)
         self.bkb = BlockKitBuilder()
         if bot == 'sasha':
             # Channels

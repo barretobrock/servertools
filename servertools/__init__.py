@@ -45,8 +45,6 @@ from .weather import (
 )
 
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-__update_date__ = get_versions()['date']
-del get_versions
+__version__ = '2.0.0'
+__update_date__ = '2022-04-23_10:56:59'
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))

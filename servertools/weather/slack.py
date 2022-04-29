@@ -1,14 +1,14 @@
 from datetime import datetime
 from typing import List
 import pandas as pd
-from kavalkilu import LogWithInflux
+from loguru import logger
 from slacktools import BlockKitBuilder as bkb
 from ..slack_communicator import SlackComm
 from ..plants import Plant
 
 
 class SlackWeatherNotification:
-    def __init__(self, parent_log: LogWithInflux):
+    def __init__(self, parent_log: logger):
         self.sComm = SlackComm(parent_log=parent_log)
 
     @staticmethod
@@ -49,7 +49,7 @@ class SlackWeatherNotification:
         """Handles routines for alerting to a frost warning"""
         plants_str = '\n'.join([f' - {x.name}' for x in plants_list])
         blocks = [
-            bkb.make_context_section(f'Plant Alert!'),
+            bkb.make_context_section('Plant Alert!'),
             bkb.make_block_divider(),
             bkb.make_block_section(f'Plant Warning: The following plants will be affected due to temps '
                                    f'falling to *`{lowest_temp:.1f}C`* (under threshold) from {hour_start:%H} to '

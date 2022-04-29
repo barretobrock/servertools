@@ -1,12 +1,17 @@
 import unittest
-from servertools import HueBulb, HueSensor
+from servertools import (
+    HueBulb,
+    HueSensor
+)
+from tests.common import make_patcher
 
 
 class TestHueBulb(unittest.TestCase):
     """Test suite for Hue Bulb """
 
     def setUp(self) -> None:
-        pass
+        self.mock_hue_bridge_init = make_patcher(self, 'servertools.light.Bridge.__init__')
+        self.mock_hue_bridge = make_patcher(self, 'servertools.light.Bridge')
 
     def test_color_light(self):
         """Test standard procedures associated with a color-capable light"""

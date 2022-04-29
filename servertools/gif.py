@@ -4,7 +4,11 @@ import os
 from typing import (
     List
 )
-from math import ceil, sqrt, floor
+from math import (
+    ceil,
+    sqrt,
+    floor
+)
 from PIL import Image
 
 
@@ -91,8 +95,8 @@ class GIF:
             frame_duration_ms: int, duration of each frame
         """
         images = []
-        img_list_sorted = img_list.sort()
-        for fpath in img_list_sorted:
+        img_list.sort()
+        for fpath in img_list:
             images.append(self.Image.open(fpath))
 
         self._save_imgs_to_gif(filename, img_list, frame_duration_ms)
@@ -109,7 +113,7 @@ class GIFSlice:
 
         try:
             number_tiles = int(number_tiles)
-        except:
+        except Exception as _:
             raise ValueError('number_tiles could not be cast to integer.')
 
         if number_tiles > TILE_LIMIT or number_tiles < 2:
