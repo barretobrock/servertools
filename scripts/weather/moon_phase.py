@@ -1,15 +1,20 @@
 from datetime import datetime
+
+from kavalkilu import DateTools
+from pukr import get_logger
 from pylunar import MoonInfo
-from kavalkilu import DateTools, LogWithInflux
-from servertools import SlackComm
 
+from servertools import (
+    LOG_DIR,
+    SlackComm,
+)
 
-logg = LogWithInflux('moon_phase', log_dir='weather')
+logg = get_logger('moon_phase', log_dir_path=LOG_DIR.joinpath('weather'))
 # lat/long in degrees, mins & secs
 loc = ((30, 16, 2), (-97, 44, 35))
 mi = MoonInfo(*loc)
 dt = DateTools()
-scom = SlackComm()
+scom = SlackComm(parent_log=logg)
 
 now_local = datetime.now()
 now_utc = dt.local_time_to_utc(now_local, as_str=False).replace(tzinfo=None)

@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from datetime import datetime as dt
+from datetime import timedelta
 import os
-from datetime import datetime as dt, timedelta
 import tempfile
-from flask import Flask, make_response
-from moviepy.editor import VideoFileClip
-from kavalkilu import Hosts, LogWithInflux
-from servertools import SlackComm, VidTools, Reolink
 
+from flask import (
+    Flask,
+    make_response,
+)
+from kavalkilu import (
+    Hosts,
+    LogWithInflux,
+)
+from moviepy.editor import VideoFileClip
+
+from servertools import (
+    Reolink,
+    SlackComm,
+    VidTools,
+)
 
 logg = LogWithInflux('motion_alerts', log_level_str='DEBUG')
 sc = SlackComm(parent_log=logg)

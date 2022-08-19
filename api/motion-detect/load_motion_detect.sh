@@ -12,4 +12,3 @@ sudo chmod 644 ${LIB_FPATH}
 # Load service & allow boot on restart
 sudo systemctl daemon-reload
 sudo systemctl enable ${LIB_FPATH}
-

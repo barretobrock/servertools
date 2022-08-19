@@ -1,18 +1,19 @@
 from typing import (
     Any,
+    Dict,
     Union,
-    Dict
 )
+
+from kavalkilu import Keys
 from meteocalc import (
-    feels_like,
     Temp,
-    dew_point
+    dew_point,
+    feels_like,
 )
 import pandas as pd
 from pyowm import OWM
 from pyowm.weatherapi25.forecast import Forecast
 from pyowm.weatherapi25.weather import Weather
-from kavalkilu import Keys
 
 
 class OWMLocation:

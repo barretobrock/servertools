@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 import json
-import pygsheets
-import pandas as pd
+import os
+
 from kavalkilu import (
     Keys,
-    Path
+    Path,
 )
+import pandas as pd
+import pygsheets
 
 
 class GSheetReader:
@@ -16,7 +17,7 @@ class GSheetReader:
         k = Keys()
         try:
             gsheets_creds = k.get_key('gsheet-reader')
-        except Exception as _:
+        except Exception:
             local_key_path = os.path.join(Path().keys_dir, 'GSHEET_READER')
             with open(local_key_path) as f:
                 gsheets_creds = json.loads(f.read())

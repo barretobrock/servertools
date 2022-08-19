@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-from typing import (
-    List
-)
 from math import (
     ceil,
+    floor,
     sqrt,
-    floor
 )
+import os
+from typing import List
+
 from PIL import Image
 
 
@@ -58,7 +57,7 @@ class GIF:
         datas = img.getdata()
 
         if background == 'white':
-            val = 255
+            _ = 255
 
         newData = []
         for item in datas:
@@ -113,7 +112,7 @@ class GIFSlice:
 
         try:
             number_tiles = int(number_tiles)
-        except Exception as _:
+        except Exception:
             raise ValueError('number_tiles could not be cast to integer.')
 
         if number_tiles > TILE_LIMIT or number_tiles < 2:
@@ -182,12 +181,12 @@ class GIFSlice:
 
         frames = self._extract_frames(filename)
 
-        columns = 0
-        rows = 0
+        # columns = 0
+        # rows = 0
 
         self._validate_image(number_tiles)
         columns, rows = self._calc_columns_rows(number_tiles)
-        extras = (columns * rows) - number_tiles
+        _ = (columns * rows) - number_tiles
 
         tile_w, tile_h = int(floor(im_w / columns)), int(floor(im_h / rows))
 

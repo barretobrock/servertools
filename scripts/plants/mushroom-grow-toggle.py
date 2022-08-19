@@ -1,5 +1,11 @@
 import time
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
+
+from kavalkilu import (
+    InfluxDBHomeAuto,
+    InfluxDBLocal,
+    LogWithInflux,
+)
+
 from servertools import HueBulb
 
 INTERVAL_MINS = 30

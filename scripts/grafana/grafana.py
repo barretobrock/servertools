@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import time
 import pathlib
-import requests
-from grafana_api.grafana_face import GrafanaFace
-from kavalkilu import Keys, LogWithInflux
-from servertools import SlackComm
+import time
 
+from grafana_api.grafana_face import GrafanaFace
+from kavalkilu import (
+    Keys,
+    LogWithInflux,
+)
+import requests
+
+from servertools import SlackComm
 
 log = LogWithInflux('grafana_snapper')
 creds = Keys().get_key('grafana')

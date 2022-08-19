@@ -1,7 +1,7 @@
 # Server Setup and Maintenance
 
 ## SETUP
- 
+
 ### Xubuntu install (20.04)
  - Wipe USB flashdrive
    `sudo dd if=/dev/zero of=/dev/sdx bs=1M status=progress`
@@ -10,7 +10,7 @@
  - After loading, insert USB into target computer, boot it up while pressing F12
  - Install as instructed
 
-### Setup SSH 
+### Setup SSH
 ```bash
 sudo apt update && sudo apt install openssh-server
 sudo systemctl enable ssh
@@ -59,7 +59,7 @@ Follow instructions [here](https://grafana.com/docs/grafana/latest/installation/
 sudo apt-get install -y apt-transport-https
 sudo apt-get install -y software-properties-common wget
 wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list 
+echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
 sudo apt-get update
 sudo apt-get install grafana
 sudo systemctl daemon-reload
@@ -85,7 +85,7 @@ cd ~/venvs && python3 -m venv stools
 ```
 Install repos & requirements
 ```bash
-cd extras 
+cd extras
 git clone https://github.com/barretobrock/servertools.git
 git clone https://github.com/barretobrock/py-package-manager.git
 cd servertools && sh update_script.sh

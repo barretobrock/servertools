@@ -14,4 +14,3 @@ pip3 install git+https://github.com/barretobrock/servertools.git#egg=servertools
 
 ### More Info
 See documentation folder for server environment setup
-

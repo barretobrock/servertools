@@ -1,8 +1,13 @@
 import re
-import pandas as pd
-from servertools import BrowserAction
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBTracker
 
+from kavalkilu import (
+    InfluxDBLocal,
+    InfluxDBTracker,
+    LogWithInflux,
+)
+import pandas as pd
+
+from servertools import BrowserAction
 
 logg = LogWithInflux('apt-prices', log_to_file=True)
 influx = InfluxDBLocal(InfluxDBTracker.APT_PRICES)

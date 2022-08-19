@@ -1,19 +1,18 @@
+from datetime import datetime as dt
+from datetime import timedelta
 import os
-from pytz import timezone
-from datetime import (
-    datetime as dt,
-    timedelta
-)
+
 from kavalkilu import (
-    LogWithInflux,
     DateTools,
+    Hosts,
     InfluxDBLocal,
     InfluxDBPiHole,
+    LogWithInflux,
     SQLLiteLocal,
-    Hosts
 )
-from servertools import SlackComm
+from pytz import timezone
 
+from servertools import SlackComm
 
 logg = LogWithInflux('pihole_etl', log_to_db=True)
 sc = SlackComm(parent_log=logg)
@@ -37,7 +36,7 @@ query = f"""
         , CASE
             WHEN status = 0 THEN 'UNKNOWN'
             WHEN status = 1 OR status > 3 THEN 'BLOCKED'
-            WHEN status = 2 OR status = 3 THEN 'ALLOWED' 
+            WHEN status = 2 OR status = 3 THEN 'ALLOWED'
             ELSE 'UNKNOWN'
         END AS query_status
         , CASE
@@ -52,7 +51,7 @@ query = f"""
             WHEN status = 8 THEN 'UPSTREAM NXDOMAIN'
             WHEN status = 9 THEN 'IN GRAVITY CNAME'
             WHEN status = 10 THEN 'REGEX MATCH CNAME'
-            WHEN status = 11 THEN 'EXACT MATCH CNAME' 
+            WHEN status = 11 THEN 'EXACT MATCH CNAME'
             ELSE 'UNKNOWN'
         END AS status_info
         , timestamp

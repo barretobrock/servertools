@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Sends messages to Slack"""
-from loguru import logger
+from loguru._logger import Logger
+from pukr import get_logger
 from slacktools import (
-    SlackTools,
     BlockKitBuilder,
-    SecretStore
+    SecretStore,
+    SlackTools,
 )
 
 
 class SlackComm:
-    def __init__(self, bot: str = 'sasha', parent_log: logger = None):
+    def __init__(self, bot: str = 'sasha', parent_log: Logger = None):
         credstore = SecretStore('secretprops.kdbx')
         bot_creds = credstore.get_key_and_make_ns(bot)
-        self.log = parent_log.bind(child_name=self.__class__.__name__)
+        if parent_log is None:
+            self.log = get_logger(self.__class__.__name__)
+        else:
+            self.log = parent_log.bind(child_name=self.__class__.__name__)
         self.st = SlackTools(bot_cred_entry=bot_creds, parent_log=self.log, use_session=False)
         self.bkb = BlockKitBuilder()
         if bot == 'sasha':

@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from roku import Roku, Application
 from typing import Optional
+
 from kavalkilu import Hosts
+from roku import (
+    Application,
+    Roku,
+)
 
 
 class RokuTV(Roku):

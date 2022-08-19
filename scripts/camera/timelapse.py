@@ -1,10 +1,18 @@
+from datetime import datetime as dt
 import os
 import time
-from datetime import datetime as dt
-from easylogger import ArgParse
-from kavalkilu import Hosts, Path, LogWithInflux
-from servertools import Amcrest, Reolink
 
+from easylogger import ArgParse
+from kavalkilu import (
+    Hosts,
+    LogWithInflux,
+    Path,
+)
+
+from servertools import (
+    Amcrest,
+    Reolink,
+)
 
 log = LogWithInflux('timelapse')
 p = Path()

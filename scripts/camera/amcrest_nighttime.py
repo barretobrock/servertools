@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Activates nighttime mode on cameras"""
-from servertools import Amcrest
-from kavalkilu import LogWithInflux, Hosts
+from kavalkilu import (
+    Hosts,
+    LogWithInflux,
+)
 
+from servertools import Amcrest
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('cam_night')

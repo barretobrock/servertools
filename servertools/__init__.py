@@ -1,50 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
+from pathlib import Path
+
 from .camera import (
     Amcrest,
-    Reolink
+    Reolink,
 )
-from .gsheets import GSheetReader
 from .gif import (
     GIF,
     GIFSlice,
-    GIFTile
+    GIFTile,
 )
+from .gsheets import GSheetReader
 from .light import (
+    HueBridge,
     HueBulb,
     HueSensor,
-    HueBridge
 )
 from .message import Email
 from .openwrt import OpenWRT
-from .plants import Plants, Plant
+from .plants import (
+    Plant,
+    Plants,
+)
 from .roku import RokuTV
 from .selenium import (
+    BrowserAction,
     ChromeDriver,
-    BrowserAction
 )
 from .slack_communicator import SlackComm
 from .text import (
     MarkovModel,
-    XPathExtractor,
     TextCleaner,
-    TextHelper
+    TextHelper,
+    XPathExtractor,
 )
 from .video import VidTools
 from .weather import (
-    OpenWeather,
-    OWMLocation,
-    YrNoWeather,
-    YRNOLocation,
     NWSAlert,
     NWSAlertZone,
-    SlackWeatherNotification,
     NWSForecast,
-    NWSForecastZone
+    NWSForecastZone,
+    OpenWeather,
+    OWMLocation,
+    SlackWeatherNotification,
+    YRNOLocation,
+    YrNoWeather,
 )
-
 
 __version__ = '2.0.0'
 __update_date__ = '2022-04-23_10:56:59'
-ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+ROOT_DIR = Path(__file__).parents[1]
+LOG_DIR = Path().home().joinpath('logs')

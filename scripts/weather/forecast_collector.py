@@ -1,22 +1,23 @@
 """Collect forecast data"""
 from datetime import (
     datetime,
-    timedelta
-)
-from kavalkilu import (
-    LogWithInflux,
-    InfluxDBLocal,
-    InfluxDBHomeAuto
-)
-from servertools import (
-    OpenWeather,
-    OWMLocation,
-    NWSForecast,
-    NWSForecastZone,
-    YrNoWeather,
-    YRNOLocation
+    timedelta,
 )
 
+from kavalkilu import (
+    InfluxDBHomeAuto,
+    InfluxDBLocal,
+    LogWithInflux,
+)
+
+from servertools import (
+    NWSForecast,
+    NWSForecastZone,
+    OpenWeather,
+    OWMLocation,
+    YRNOLocation,
+    YrNoWeather,
+)
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('forecast', log_dir='weather')

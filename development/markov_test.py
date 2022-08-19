@@ -19,4 +19,3 @@ mk = MarkovModel(fpath=[mk1_src, mk2_src], do_compile=True)
 # mk1 = MarkovModel(fpath=mk1_src, do_compile=True)
 mk2 = MarkovModel(fpath=mk2_src, do_compile=True)
 mk2.generate_sentence(posify=True)
-

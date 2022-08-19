@@ -1,22 +1,23 @@
-import re
-import os
-import tempfile
 from datetime import datetime as dt
+import os
+import re
+import tempfile
 from typing import (
-    Optional,
     List,
-    Tuple
+    Optional,
+    Tuple,
 )
-import numpy as np
+
 import cv2
 import imutils
 from moviepy.editor import (
+    CompositeAudioClip,
+    ImageSequenceClip,
+    VideoClip,
     VideoFileClip,
     concatenate_videoclips,
-    ImageSequenceClip,
-    CompositeAudioClip,
-    VideoClip
 )
+import numpy as np
 
 
 class VidTools:

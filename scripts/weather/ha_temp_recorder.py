@@ -1,20 +1,24 @@
 """Sends latest temperature readings to HASS"""
-from kavalkilu import LogWithInflux, InfluxDBHomeAuto, InfluxDBLocal, HAHelper
-
+from kavalkilu import (
+    HAHelper,
+    InfluxDBHomeAuto,
+    InfluxDBLocal,
+    LogWithInflux,
+)
 
 log = LogWithInflux('ha-temps', log_dir='weather')
 influx = InfluxDBLocal(InfluxDBHomeAuto.TEMPS)
 
 query = '''
-    SELECT 
+    SELECT
         last("temp") AS temp,
         last("humidity") AS humidity
     FROM "temps"
-    WHERE 
+    WHERE
         location =~ /mushroom|r6du|tuba|wc|v2lis|freezer|fridge|kontor/
         AND time > now() - 30m
-    GROUP BY 
-        "location" 
+    GROUP BY
+        "location"
     fill(null)
     ORDER BY ASC
 '''

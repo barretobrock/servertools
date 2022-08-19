@@ -1,15 +1,15 @@
-# NGINX Setup 
+# NGINX Setup
 
 ## Prerequisites
  - Services running
  - .local domains enabled on OpenWRT router
 
 ## Resources
- - 
+ -
 
 ## Installation
-```bash 
-sudo apt install nginx  
+```bash
+sudo apt install nginx
 ```
 
 ## Setup
@@ -18,7 +18,7 @@ Make the file for the reverse proxies
 sudo nano /etc/nginx/sites-available/tinyserv.local
 ```
 Add the following
-```bash                         
+```bash
 server {
     listen 81;
     listen [::]:81;

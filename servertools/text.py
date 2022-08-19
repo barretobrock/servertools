@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import re
 import json
 from random import randint
+import re
 from typing import (
+    List,
     Union,
-    List
 )
-import nltk
-import markovify
-from markovify import Text
 from urllib.request import (
     Request,
-    urlopen
+    urlopen,
 )
+
 from lxml import etree
 from lxml.etree import (
+    _Element,
     _ElementTree,
-    _Element
 )
+import markovify
+from markovify import Text
+import nltk
 
 
 class MarkovText(Text):

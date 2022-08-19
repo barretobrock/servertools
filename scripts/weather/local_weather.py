@@ -1,8 +1,16 @@
 """Collect current weather data"""
 import sys
-from kavalkilu import LogWithInflux, InfluxDBLocal, InfluxDBHomeAuto
-from servertools import YRNOLocation, YrNoWeather
 
+from kavalkilu import (
+    InfluxDBHomeAuto,
+    InfluxDBLocal,
+    LogWithInflux,
+)
+
+from servertools import (
+    YRNOLocation,
+    YrNoWeather,
+)
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('local', log_dir='weather')

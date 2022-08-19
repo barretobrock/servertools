@@ -1,8 +1,9 @@
-import requests
 from typing import (
     Dict,
-    List
+    List,
 )
+
+import requests
 
 
 class YNAB:

@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from random import (
+    randint,
+    random,
+    uniform,
+)
 import time
 from typing import (
-    Union,
-    Tuple,
     List,
-    Optional
+    Optional,
+    Tuple,
+    Union,
 )
-from random import (
-    random,
-    randint,
-    uniform
-)
+
+from kavalkilu import Hosts
 from phue import (
     Bridge,
     Light,
-    Sensor
+    Sensor,
 )
-from kavalkilu import Hosts
 
 
 class HueBridge(Bridge):

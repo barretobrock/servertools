@@ -3,23 +3,24 @@
 """
 Handles exceptions while interacting with Selenium objects
 """
+from random import randint
 import time
 from typing import (
-    List,
-    Callable,
-    Optional,
     Any,
-    Union
+    Callable,
+    List,
+    Optional,
+    Union,
 )
-from random import randint
+
+from loguru import logger
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import (
+    By,
     WebElement,
-    By
 )
-from loguru import logger
 
 
 class ChromeDriver(Chrome):

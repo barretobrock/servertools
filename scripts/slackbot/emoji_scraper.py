@@ -1,12 +1,13 @@
 """Checks slackmojis daily for new additions"""
 import json
 import pathlib
+
 from kavalkilu import LogWithInflux
+
 from servertools import (
     SlackComm,
-    XPathExtractor
+    XPathExtractor,
 )
-
 
 logg = LogWithInflux('emoji-scraper')
 scom = SlackComm(bot='viktor', parent_log=logg)
@@ -44,10 +45,10 @@ customize_url = f'https://{scom.st.team}.slack.com/customize/emoji?utm_source=in
 help_text = f"""
 *Emoji Upload Process*
  - Open the image in a browser (click the link or right click the image -> "open link")
- - Right click image -> `Save image as...` 
+ - Right click image -> `Save image as...`
  - Go to the <{customize_url}|custom emoji page> for OKR
  - Click `Add Custom Emoji`
- - Upload file & give it a unique name! 
+ - Upload file & give it a unique name!
 """
 
 if len(new_emojis) > 0:

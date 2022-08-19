@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 import datetime
 import email
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 import imaplib
 import mimetypes
+import os
 from smtplib import SMTP
 from typing import List
 
@@ -65,8 +65,8 @@ class Email:
             self.smtpserver.quit()
         except TimeoutError:
             self.log.exception('Connection with server timed out.')
-        except:
-            self.log.exception('Could not connect with email server.')
+        # except:
+        #     self.log.exception('Could not connect with email server.')
 
     def forward(self, email_to, email_object):
         """Command to forward an email"""

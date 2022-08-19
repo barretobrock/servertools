@@ -2,14 +2,14 @@ from .nws import (
     NWSAlert,
     NWSAlertZone,
     NWSForecast,
-    NWSForecastZone
+    NWSForecastZone,
 )
 from .owm import (
     OpenWeather,
-    OWMLocation
+    OWMLocation,
 )
 from .slack import SlackWeatherNotification
 from .yrno import (
     YRNOLocation,
-    YrNoWeather
+    YrNoWeather,
 )

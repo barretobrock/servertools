@@ -1,17 +1,18 @@
-import os
-import json
-import socket
 from datetime import datetime as dt
+import json
+import os
+import socket
 from typing import (
-    Tuple,
     List,
-    Optional
+    Optional,
+    Tuple,
 )
-from openwrt_luci_rpc import OpenWrtRpc
+
 from kavalkilu import (
     Keys,
-    Path
+    Path,
 )
+from openwrt_luci_rpc import OpenWrtRpc
 
 
 class OpenWRT(OpenWrtRpc):

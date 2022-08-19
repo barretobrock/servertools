@@ -13,5 +13,3 @@ sudo apt install build-essential git python3-pip python3-dev python3-venv python
 
 # Clone kavalkilu to home dir
 git clone git@github.com:barretobrock/kavalkilu.git ${HOME}
-
-

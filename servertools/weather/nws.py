@@ -1,18 +1,19 @@
-import re
-import json
-import pathlib
-import requests
-from typing import (
-    List,
-    Union
-)
 from datetime import (
     datetime,
-    timedelta
+    timedelta,
 )
-from dateutil import tz
 from functools import reduce
+import json
+import pathlib
+import re
+from typing import (
+    List,
+    Union,
+)
+
+from dateutil import tz
 import pandas as pd
+import requests
 
 
 class NWSAlertZone:

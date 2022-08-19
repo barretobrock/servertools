@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. If not, will arm the cameras"""
-from servertools import Amcrest, OpenWRT
-from kavalkilu import LogWithInflux, Hosts
+from kavalkilu import (
+    Hosts,
+    LogWithInflux,
+)
 
+from servertools import (
+    Amcrest,
+    OpenWRT,
+)
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = LogWithInflux('cam_active')

@@ -1,9 +1,16 @@
 """For joining timelapse shots"""
 import os
-from moviepy.editor import ImageClip, concatenate_videoclips
-from kavalkilu import Path, LogWithInflux
-from servertools import SlackComm
 
+from kavalkilu import (
+    LogWithInflux,
+    Path,
+)
+from moviepy.editor import (
+    ImageClip,
+    concatenate_videoclips,
+)
+
+from servertools import SlackComm
 
 log = LogWithInflux('timelapse_combi')
 p = Path()

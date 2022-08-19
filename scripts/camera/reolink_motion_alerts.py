@@ -1,22 +1,21 @@
-import os
+from datetime import datetime as dt
+from datetime import timedelta
 import math
+import os
 import tempfile
-from datetime import (
-    datetime as dt,
-    timedelta
-)
-from moviepy.editor import VideoFileClip
+
+from easylogger import ArgParse
 from kavalkilu import (
     Hosts,
-    LogWithInflux
+    LogWithInflux,
 )
-from easylogger import ArgParse
+from moviepy.editor import VideoFileClip
+
 from servertools import (
+    Reolink,
     SlackComm,
     VidTools,
-    Reolink
 )
-
 
 logg = LogWithInflux('motion_alerts')
 sc = SlackComm(parent_log=logg)
@@ -87,11 +86,11 @@ if len(motion_files) > 0:
     fpath = vt.make_clip_from_filenames(motion_files[0]['start'], motion_files[-1]['end'], processed_files,
                                         trim_files=False, prefix=f'{CAMERA}_motion')
     # Draw rectangles over the motion zones
-    logg.debug(f'Detecting motion in downloaded video file...')
+    logg.debug('Detecting motion in downloaded video file...')
     upload, fpath, duration = vt.draw_on_motion(fpath, min_area=500, min_frames=20, threshold=20,
                                                 ref_frame_turnover=20, buffer_s=0.2)
     if upload:
-        logg.info(f'Uploading vid to channel')
+        logg.info('Uploading vid to channel')
         mins = duration / 60
         secs = mins % 1 * 60
         msg = f'*`{CAMERA}`*: *`{len(processed_files)}`* clips out of *`{len(motion_files)}`* motion events ' \

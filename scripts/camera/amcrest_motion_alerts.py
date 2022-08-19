@@ -1,9 +1,18 @@
+from datetime import datetime as dt
+from datetime import timedelta
 import tempfile
-from datetime import datetime as dt, timedelta
-from kavalkilu import Hosts, LogWithInflux
-from easylogger import ArgParse
-from servertools import SlackComm, Amcrest, VidTools
 
+from easylogger import ArgParse
+from kavalkilu import (
+    Hosts,
+    LogWithInflux,
+)
+
+from servertools import (
+    Amcrest,
+    SlackComm,
+    VidTools,
+)
 
 logg = LogWithInflux('motion_alerts')
 sc = SlackComm(parent_log=logg)
@@ -68,7 +77,7 @@ for mlog in motion_logs:
     fpath = vt.make_clip_from_filenames(start, end, filepaths, trim_files=True,
                                         prefix=f'{CAMERA}_motion')
     # Draw rectangles over the motion zones
-    logg.debug(f'Detecting motion in downloaded video file...')
+    logg.debug('Detecting motion in downloaded video file...')
     upload, fpath = vt.draw_on_motion(fpath, min_area=500, min_frames=2, threshold=20)
     if upload:
         logg.debug('File is significant... Adding to list.')

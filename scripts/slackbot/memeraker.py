@@ -1,13 +1,19 @@
 """Message links to memes for Viktor to post periodically"""
+from datetime import (
+    datetime,
+    timedelta,
+)
 import os
 import re
 import time
-import numpy as np
 from typing import List
-from datetime import datetime, timedelta
-from slacktools import SlackTools
-from kavalkilu import Keys, LogWithInflux
 
+from kavalkilu import (
+    Keys,
+    LogWithInflux,
+)
+import numpy as np
+from slacktools import SlackTools
 
 logg = LogWithInflux('memeraker')
 vcreds = Keys().get_key('viktor')

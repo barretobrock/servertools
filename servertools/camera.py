@@ -1,22 +1,21 @@
+from datetime import datetime as dt
+from datetime import timedelta
 import os
 import re
-from datetime import (
-    datetime as dt,
-    timedelta
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Union,
 )
+
+import amcrest
+from kavalkilu import Keys
+from loguru import logger
+from reolink_api import Camera
 import requests
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import ConnectionError
-from typing import (
-    Optional,
-    List,
-    Dict,
-    Union
-)
-import amcrest
-from loguru import logger
-from reolink_api import Camera
-from kavalkilu import Keys
 
 # TODO:
 #  - add get_dimensions (sub or main stream) methods to both classes
@@ -68,7 +67,7 @@ class Amcrest:
             name = re.search(r'(?<=Name=).*(?=\r)', self.camera.video_channel_title).group()
             model = re.search(r'(?<=type=).*(?=\r)', self.camera.device_type).group()
             camera_type = re.search(r'(?<=class=).*(?=\r)', self.camera.device_class).group()
-        except (ConnectionError, amcrest.exceptions.CommError) as e:
+        except (ConnectionError, amcrest.exceptions.CommError):
             self.camera = None
             self.is_connected = False
             name = model = camera_type = 'unknown'

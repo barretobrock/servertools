@@ -1,6 +1,10 @@
 import subprocess
-from kavalkilu import LogWithInflux, HOME_SERVER_HOSTNAME, Hosts
 
+from kavalkilu import (
+    HOME_SERVER_HOSTNAME,
+    Hosts,
+    LogWithInflux,
+)
 
 logg = LogWithInflux('rf_stream', log_dir='rf')
 serv_ip = Hosts().get_ip_from_host(HOME_SERVER_HOSTNAME)

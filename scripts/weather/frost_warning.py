@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from datetime import datetime
+
 import pandas as pd
-from kavalkilu import LogWithInflux
+from pukr import get_logger
+
 from servertools import (
-    SlackWeatherNotification,
+    LOG_DIR,
     OpenWeather,
     OWMLocation,
-    Plants,
-    Plant
+    SlackWeatherNotification,
 )
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = LogWithInflux('frost_warn', log_dir='weather')
+log = get_logger('frost_warn', log_dir_path=LOG_DIR.joinpath('weather'))
 
 now = datetime.now()
 weather = OpenWeather(OWMLocation.ATX)

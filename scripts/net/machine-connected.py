@@ -1,20 +1,21 @@
 """Tracks all currently connected machines, notifies of IPs that
     haven't been statically assigned"""
-from pathlib import Path
-import pandas as pd
-from slacktools import BlockKitBuilder
-from servertools import (
-    OpenWRT,
-    SlackComm
-)
-from pukr import get_logger
 from kavalkilu import (
     Hosts,
+    InfluxDBHomeAuto,
     InfluxDBLocal,
-    InfluxDBHomeAuto
+)
+import pandas as pd
+from pukr import get_logger
+from slacktools import BlockKitBuilder as BKitB
+
+from servertools import (
+    LOG_DIR,
+    OpenWRT,
+    SlackComm,
 )
 
-logg = get_logger('machine-conn', log_dir_path=Path().home().joinpath('logs/machine_conn'))
+logg = get_logger('machine-conn', log_dir_path=LOG_DIR.joinpath('machine_conn'))
 h = Hosts()
 ow = OpenWRT()
 
@@ -34,7 +35,6 @@ logg.debug('Beginning scan of unknown ips.')
 unknown_ips = ow.show_unknown_ips()
 logg.debug(f'Found {len(unknown_ips)} unknown ips.')
 if len(unknown_ips) > 0:
-    bkb = BlockKitBuilder()
     sc = SlackComm(parent_log=logg)
     blocks = []
     msg_chunk = []
@@ -47,9 +47,11 @@ if len(unknown_ips) > 0:
             msg_chunk.append('`{ip}`:\t\t{hostname}\t\t{mac}'.format(**ip_info_dict))
     if len(msg_chunk) > 0:
         blocks = [
-            bkb.make_context_section('Unknown IP(s) recently connected.'),
-            bkb.make_block_divider(),
-            bkb.make_block_section(msg_chunk)
+            BKitB.make_context_block([
+                BKitB.markdown_section('Unknown IP(s) recently connected.')
+            ]),
+            BKitB.make_divider_block(),
+            BKitB.make_section_block(BKitB.markdown_section('\n'.join(msg_chunk)))
         ]
         sc.st.send_message(sc.koduv6rgu_kanal, message='Unknown IP message', blocks=blocks)
 
