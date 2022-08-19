@@ -22,7 +22,7 @@ slacktools = {git = "https://github.com/barretobrock/slacktools.git"}
 reolink_api = {git = "https://github.com/barretobrock/reolink-python-api.git"}
 pukr = { git = "https://github.com/barretobrock/pukr.git", branch = "main" }
 Flask = "2.1.1"
-Pillow = "^9.1.0"
+Pillow = "9.2.0"
 amcrest = "^1.9.7"
 beautifulsoup4 = "^4.11.1"
 grafana-api = "^1.0.3"
