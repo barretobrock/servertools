@@ -35,7 +35,7 @@ def connect_to_smb() -> Tuple[SMBConnection, str]:
         remote_name=creds['remote_name'],
         use_ntlm_v2=True
     )
-    conn.connect(ip=creds['smp_ip'])
+    conn.connect(ip=creds['smb_ip'])
 
     svc_name = creds['service_name']
     return conn, svc_name
