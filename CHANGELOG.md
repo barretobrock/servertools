@@ -15,6 +15,15 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
 
+### [2.1.0] - 2022-08-20
+#### Changed
+ - Requirements parameters
+#### Removed
+ - Roku support
+ - Gsheets support
+ - Hue support
+ - Speedtest cli
+
 ### [2.0.0] - 2022-04-23
 #### Added
  - `CHANGELOG.md`
